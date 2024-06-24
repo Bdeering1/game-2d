@@ -6,9 +6,6 @@ namespace Game2D;
 
 public class Game1 : Game
 {
-    Texture2D ballTexture;
-    Vector2 ballPosition;
-
     private readonly Input input;
     private readonly Stage stage;
     private SpriteBatch spriteBatch;
@@ -48,7 +45,7 @@ public class Game1 : Game
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
-        spriteBatch.Begin();
+        spriteBatch.Begin(samplerState: SamplerState.PointClamp);
         stage.Draw(gameTime, spriteBatch);
         spriteBatch.End();
 
