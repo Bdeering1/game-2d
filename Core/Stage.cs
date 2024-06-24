@@ -25,6 +25,7 @@ public class Stage
 
     public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
     {
-        spriteBatch.Draw(Player.Texture, Player.Position, Color.White);        
+        spriteBatch.Draw(Player.animations.curTexture, Player.Position, Player.animations.clipRect, Color.White);
+        //spriteBatch.Draw(Player.Texture, Player.Position, Color.White);        
     }
 }
