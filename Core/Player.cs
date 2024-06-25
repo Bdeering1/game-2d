@@ -11,8 +11,7 @@ public class Player
     public Texture2D Texture { get; set; }
     public Vector2 Position { get; set; }
     public float Speed { get; set; }
-
-    public Animations animations;
+    public Animations animations { get; private set; }
 
     private Input Input { get; }
 

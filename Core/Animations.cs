@@ -20,7 +20,8 @@ public class Animations {
 	//the image for the current animation frame
 	public Texture2D curTexture;
 
-	public Animations(ContentManager content, List<(string path, int fps, int startX, int startY, int numFrames)> anims, int spriteWidth, int spriteHeight) {
+	public Animations(ContentManager content, List<(string path, int fps, int startX, int startY, int numFrames)> anims, int spriteWidth, int spriteHeight)
+	{
 		this.spriteWidth = spriteWidth;
 		this.spriteHeight = spriteHeight;
 		clipRect = new Rectangle(0, 0, spriteWidth, spriteHeight);
@@ -33,7 +34,8 @@ public class Animations {
 		curTexture = animations[0].img;
 	}
 
-	public void Update(GameTime gameTime) {
+	public void Update(GameTime gameTime)
+	{
 		timeSinceFrame += gameTime.ElapsedGameTime.TotalNanoseconds;
 		Animation current = animations[curAnim];
 		curTexture = current.img;
@@ -57,7 +59,8 @@ public class Animations {
 	}
 }
 
-public class Animation {
+public class Animation
+{
 	public Texture2D img;
 	public int fps;
 	public int startX;
@@ -68,7 +71,8 @@ public class Animation {
 	public int framesPerRow;
 	public int timePerFrame;
 
-	public Animation(ContentManager content, string path, int fps, int startX, int startY, int spriteWidth, int numFrames) {
+	public Animation(ContentManager content, string path, int fps, int startX, int startY, int spriteWidth, int numFrames)
+	{
 		img = content.Load<Texture2D>(path);
 		this.fps = fps;
 		this.startX = startX;
@@ -81,7 +85,8 @@ public class Animation {
 		timePerFrame = (int)1e9/fps;
 	}
 
-	public void Reset() {
+	public void Reset()
+	{
 		x = startX;
 		y = startY;
 	}
