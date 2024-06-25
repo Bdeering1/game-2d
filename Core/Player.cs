@@ -21,10 +21,10 @@ public class Player
         Texture = Utils.CreateRect(services.GetService<GraphicsDevice>(), 100, 200, Color.Green); 
         Console.WriteLine("creating animations");
 
-        List<(string path, int fps, int startX, int startY, int numFrames)> anims = new(){
-            ("player/red-hood-sheet", 20, 0, 0, 18)
-        };
-        animations = new Animations(services, anims, 50, 40);
+        List<(int fps, int startX, int startY, int numFrames)> anims = [
+            (16, 0, 0, 18)
+        ];
+        animations = new Animations(services, "player/red-hood-sheet", anims, 50, 40);
 
         Speed = 100f;
     }

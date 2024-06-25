@@ -28,6 +28,6 @@ public class Stage
         foreach (var chunk in Chunks) {
             chunk.Draw(gameTime);
         }
-        SpriteBatch.Draw(Player.animations.curTexture, Player.Position, Player.animations.clipRect, Color.White);
+        SpriteBatch.Draw(Player.animations.sheet.img, Player.Position, Player.animations.clipRect, Color.White);
     }
 }
