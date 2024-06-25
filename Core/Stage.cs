@@ -1,28 +1,21 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Game2D;
 
 public class Stage
 {
-    private List<Chunk> Chunks { get; } = new();
+    public List<Chunk> Chunks { get; } = new();
+    private SpriteBatch SpriteBatch { get; }
     private Player Player { get; }
 
-    public Stage(Player player)
+    public Stage(GameServiceContainer services)
     {
-        Player = player;
+        Player = new(services);
+        SpriteBatch = services.GetService<SpriteBatch>();
 
-        Chunks.Add(new());
-    }
-
-    public void LoadContent(GraphicsDevice graphics, ContentManager content)
-    {
-        foreach (var chunk in Chunks) {
-            chunk.LoadContent(graphics, content);
-        }
-        Player.LoadContent(graphics, content);
+        Chunks.Add(new(services));
     }
 
     public void Update(GameTime gameTime)
@@ -30,11 +23,11 @@ public class Stage
         Player.Update(gameTime);
     }
 
-    public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+    public void Draw(GameTime gameTime)
     {
         foreach (var chunk in Chunks) {
-            chunk.Draw(gameTime, spriteBatch);
+            chunk.Draw(gameTime);
         }
-        spriteBatch.Draw(Player.animations.curTexture, Player.Position, Player.animations.clipRect, Color.White);
+        SpriteBatch.Draw(Player.animations.curTexture, Player.Position, Player.animations.clipRect, Color.White);
     }
 }

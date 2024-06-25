@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Game2D;
@@ -14,12 +13,12 @@ public class Chunk {
     public Tile[,] Tiles { get; } = new Tile[CHUNK_WIDTH, CHUNK_HEIGHT];
     public List<Rectangle> CollisionBoxes { get; }
 
-    public Chunk() {
+    private SpriteBatch SpriteBatch { get; }
 
-    }
+    public Chunk(GameServiceContainer services) {
+        SpriteBatch = services.GetService<SpriteBatch>();
 
-    public void LoadContent(GraphicsDevice graphics, ContentManager content) {
-        var placeholder = Utils.CreateRect(graphics, TILE_SIZE, TILE_SIZE, Color.Khaki);
+        var placeholder = Utils.CreateRect(services.GetService<GraphicsDevice>(), TILE_SIZE, TILE_SIZE, Color.Khaki);
         for (var x = 0; x < CHUNK_WIDTH; x++) {
             for (var y = 0; y < CHUNK_HEIGHT; y++) {
                 Tiles[x,y] = new Tile(
@@ -32,10 +31,10 @@ public class Chunk {
         }
     }
 
-    public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+    public void Draw(GameTime gameTime)
     {
         foreach (var tile in Tiles) {
-            spriteBatch.Draw(tile.Texture, Offset + tile.Offset, Color.White);
+            SpriteBatch.Draw(tile.Texture, Offset + tile.Offset, Color.White);
         }
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -6,7 +5,12 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Game2D;
 
-public class Animations {
+public class Animations
+{
+	//the source rectangle for the current animation frame
+	public Rectangle clipRect;
+	//the image for the current animation frame
+	public Texture2D curTexture;
 
 	private double timeSinceFrame;
 	private int curAnim;
@@ -15,12 +19,8 @@ public class Animations {
 	private readonly Animation[] animations;
 	private readonly int spriteWidth;
 	private readonly int spriteHeight;
-	//the source rectangle for the current animation frame
-	public Rectangle clipRect;
-	//the image for the current animation frame
-	public Texture2D curTexture;
 
-	public Animations(ContentManager content, List<(string path, int fps, int startX, int startY, int numFrames)> anims, int spriteWidth, int spriteHeight)
+	public Animations(GameServiceContainer services, List<(string path, int fps, int startX, int startY, int numFrames)> anims, int spriteWidth, int spriteHeight)
 	{
 		this.spriteWidth = spriteWidth;
 		this.spriteHeight = spriteHeight;
@@ -29,7 +29,8 @@ public class Animations {
 		
 		animations = new Animation[anims.Count];
 		for (int i = 0; i < anims.Count; i++) {
-			animations[i] = new Animation(content, anims[i].path, anims[i].fps, anims[i].startX, anims[i].startY, spriteWidth, anims[i].numFrames);
+			var img = services.GetService<ContentManager>().Load<Texture2D>(anims[i].path);
+			animations[i] = new Animation(img, anims[i].fps, anims[i].startX, anims[i].startY, spriteWidth, anims[i].numFrames);
 		}
 		curTexture = animations[0].img;
 	}
@@ -71,9 +72,9 @@ public class Animation
 	public int framesPerRow;
 	public int timePerFrame;
 
-	public Animation(ContentManager content, string path, int fps, int startX, int startY, int spriteWidth, int numFrames)
+	public Animation(Texture2D img, int fps, int startX, int startY, int spriteWidth, int numFrames)
 	{
-		img = content.Load<Texture2D>(path);
+		this.img = img;
 		this.fps = fps;
 		this.startX = startX;
 		this.startY = startY;

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -6,28 +7,30 @@ namespace Game2D;
 
 public class Game1 : Game
 {
-    private readonly Input input;
-    private readonly Stage stage;
+    private Input input;
+    private Stage stage;
     private SpriteBatch spriteBatch;
 
-    public Game1(Input input, Stage stage)
+    public Game1()
     {
-        this.input = input;
-        this.stage = stage;
-
+        new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
     }
 
     protected override void Initialize()
     {
-        base.Initialize();
-    }
+        input = new();
+        spriteBatch = new(GraphicsDevice);
 
-    protected override void LoadContent()
-    {
-        spriteBatch = new SpriteBatch(GraphicsDevice);
-        stage.LoadContent(GraphicsDevice, Content);
+        Services.AddService<Input>(input);
+        Services.AddService<SpriteBatch>(spriteBatch);
+        Services.AddService<GraphicsDevice>(GraphicsDevice);
+        Services.AddService<ContentManager>(Content);
+
+        stage = new(Services);
+
+        base.Initialize();
     }
 
     protected override void Update(GameTime gameTime)
@@ -46,7 +49,7 @@ public class Game1 : Game
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
         spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-        stage.Draw(gameTime, spriteBatch);
+        stage.Draw(gameTime);
         spriteBatch.End();
 
         base.Draw(gameTime);
