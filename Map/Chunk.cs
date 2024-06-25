@@ -19,15 +19,18 @@ public class Chunk {
         SpriteBatch = services.GetService<SpriteBatch>();
 
         var placeholder = Utils.CreateRect(services.GetService<GraphicsDevice>(), TILE_SIZE, TILE_SIZE, Color.Khaki);
+        var placeholder1 = Utils.CreateRect(services.GetService<GraphicsDevice>(), TILE_SIZE, TILE_SIZE, Color.Brown);
+        bool color = false;
         for (var x = 0; x < CHUNK_WIDTH; x++) {
             for (var y = 0; y < CHUNK_HEIGHT; y++) {
                 Tiles[x,y] = new Tile(
-                    placeholder,
+                    (color = !color) ? placeholder : placeholder1,
                     CollisionType.Passable,
                     new(x * TILE_SIZE, y * TILE_SIZE),
                     new(TILE_SIZE)
                 );
             }
+            color = !color;
         }
     }
 
