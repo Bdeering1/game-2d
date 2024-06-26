@@ -5,28 +5,28 @@ namespace Game2D;
 
 public class FrameCounter
 {
-    private double currentFrametimes;
-    private double weight;
-    private int numerator;
+    private int smoothingFactor;
+    private double frameTimes;
+    private double scalingFactor;
 
     public int framerate
     {
         get
         {
-            return (int)Math.Round(numerator / currentFrametimes);
+            return (int)Math.Round(smoothingFactor / frameTimes);
         }
     }
 
-    public FrameCounter(int oldFrameWeight)
+    public FrameCounter(int smoothingFactor)
     {
-        numerator = oldFrameWeight;
-        weight = (double)oldFrameWeight / (oldFrameWeight - 1.0);
+        this.smoothingFactor = smoothingFactor;
+        scalingFactor = (smoothingFactor - 1.0) / (double)smoothingFactor;
     }
 
     public void Update(GameTime gameTime)
     {
-        currentFrametimes = currentFrametimes / weight;
-        currentFrametimes += gameTime.ElapsedGameTime.TotalSeconds;
+        frameTimes = frameTimes * scalingFactor;
+        frameTimes += gameTime.ElapsedGameTime.TotalSeconds;
     }
 
     public override string ToString() =>

@@ -10,6 +10,7 @@ public class Game1 : Game
 {
     const int DEFAULT_WIDTH = 1200;
     const int DEFAULT_HEIGHT = 900;
+    const int FPS_SMOOTHING = 5;
 
     private GraphicsDeviceManager graphics;
     private Input input;
@@ -36,7 +37,7 @@ public class Game1 : Game
     {
         input = new();
         spriteBatch = new(GraphicsDevice);
-        frameCounter = new(3);
+        frameCounter = new(FPS_SMOOTHING);
         font = Content.Load<SpriteFont>("arial-12");
 
         Services.AddService<Input>(input);
