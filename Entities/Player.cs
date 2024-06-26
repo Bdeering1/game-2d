@@ -8,12 +8,11 @@ namespace Game2D;
 public class Player: IMovable
 {
     public Texture2D Texture { get; set; }
-
     public Animations Animations { get; }
 
     public Hitbox Position { get; set; } = new();
     public Vector2 Velocity { get; set; } = new();
-    public float Speed { get; set; }
+    public float Acceleration { get; } = 10f;
 
     private Input Input { get; }
 
@@ -29,14 +28,19 @@ public class Player: IMovable
         ];
         Animations = new Animations(services, "player/red-hood-sheet", anims, 50, 40);
 
-        Speed = 100f;
         Position = new Hitbox(0f, 0f, 30f, 50f);
     }
 
     public void Update(GameTime gameTime)
     {
         Animations.Update(gameTime);
-        Velocity += new Vector2(0.0f, 9.8f) + Input.GetDigitalDirection();
+
+        var digitalDirection = Input.GetDigitalDirection();
+        var analogDirection = Input.GetAnalogDirection();
+        Velocity += new Vector2(0.0f, 9.8f) + Acceleration *
+                    (!digitalDirection.Equals(Vector2.Zero)
+                     ? digitalDirection
+                     : analogDirection);
         Position.Pos += Vector2.Multiply(Velocity, (float)gameTime.ElapsedGameTime.TotalSeconds);
     }
 

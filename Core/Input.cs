@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -5,6 +6,8 @@ namespace Game2D;
 
 public class Input
 {
+    private const float DEADZONE = 0.5f;
+
     private KeyboardState keyboard;
     private MouseState mouse;
     private GamePadState gamepad;
@@ -27,12 +30,23 @@ public class Input
 
     public Vector2 GetAnalogDirection()
     {
-        return new(0,0);
+        Vector2 direction = new(0,0);
+        var capabilities = GamePad.GetCapabilities(PlayerIndex.One);
+        if (!capabilities.IsConnected ||
+            !capabilities.HasLeftXThumbStick ||
+            !capabilities.HasLeftYThumbStick) return direction;
+
+        if (Math.Abs(gamepad.ThumbSticks.Left.X) > DEADZONE)
+            direction.X += gamepad.ThumbSticks.Left.X;
+        if (Math.Abs(gamepad.ThumbSticks.Left.Y) > DEADZONE)
+            direction.X += gamepad.ThumbSticks.Left.Y;
+
+        return direction;
     }
 
     public void Update() {
         keyboard = Keyboard.GetState();
         mouse = Mouse.GetState();
-        gamepad = GamePad.GetState(0);
+        gamepad = GamePad.GetState(PlayerIndex.One);
     }
 }
