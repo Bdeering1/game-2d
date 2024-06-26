@@ -7,13 +7,24 @@ namespace Game2D;
 
 public class Game1 : Game
 {
+    const int DEFAULT_WIDTH = 1200;
+    const int DEFAULT_HEIGHT = 900;
+
+    private GraphicsDeviceManager graphics;
     private Input input;
     private Stage stage;
     private SpriteBatch spriteBatch;
+    private FrameCounter frameCounter;
+
+    private SpriteFont font;
+    private Vector2 fpsOffset;
 
     public Game1()
     {
-        new GraphicsDeviceManager(this);
+        graphics = new GraphicsDeviceManager(this);
+        graphics.PreferredBackBufferWidth = DEFAULT_WIDTH;
+        graphics.PreferredBackBufferHeight = DEFAULT_HEIGHT;
+
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
     }
@@ -22,6 +33,8 @@ public class Game1 : Game
     {
         input = new();
         spriteBatch = new(GraphicsDevice);
+        frameCounter = new(3);
+        font = Content.Load<SpriteFont>("arial-12");
 
         Services.AddService<Input>(input);
         Services.AddService<SpriteBatch>(spriteBatch);
@@ -40,6 +53,7 @@ public class Game1 : Game
 
         input.Update();
         stage.Update(gameTime);
+        frameCounter.Update(gameTime);
 
         base.Update(gameTime);
     }
@@ -50,6 +64,14 @@ public class Game1 : Game
 
         spriteBatch.Begin(samplerState: SamplerState.PointClamp);
         stage.Draw(gameTime);
+
+        var fps = frameCounter.ToString();
+        spriteBatch.DrawString(
+            font,
+            fps,
+            new Vector2(GraphicsDevice.Viewport.Bounds.Width - font.MeasureString(fps).X - 10, 10),
+            Color.White
+        );
         spriteBatch.End();
 
         base.Draw(gameTime);
