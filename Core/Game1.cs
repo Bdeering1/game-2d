@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -14,16 +15,18 @@ public class Game1 : Game
     private Input input;
     private Stage stage;
     private SpriteBatch spriteBatch;
-    private FrameCounter frameCounter;
 
+    private FrameCounter frameCounter;
     private SpriteFont font;
-    private Vector2 fpsOffset;
 
     public Game1()
     {
         graphics = new GraphicsDeviceManager(this);
         graphics.PreferredBackBufferWidth = DEFAULT_WIDTH;
         graphics.PreferredBackBufferHeight = DEFAULT_HEIGHT;
+
+        Window.AllowUserResizing = true;
+        Window.ClientSizeChanged += OnResize;
 
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
@@ -75,5 +78,16 @@ public class Game1 : Game
         spriteBatch.End();
 
         base.Draw(gameTime);
+    }
+
+    public void OnResize(Object sender, EventArgs e)
+    {
+        if ((graphics.PreferredBackBufferWidth != GraphicsDevice.Viewport.Width) ||
+            (graphics.PreferredBackBufferHeight != GraphicsDevice.Viewport.Height))
+        {
+            graphics.PreferredBackBufferWidth = GraphicsDevice.Viewport.Width;
+            graphics.PreferredBackBufferHeight = GraphicsDevice.Viewport.Height;
+            graphics.ApplyChanges();
+        }
     }
 }
