@@ -21,7 +21,7 @@ public class Player: IMovable
         Input = services.GetService<Input>();
 
         var config = services.GetService<ConfigurationService>();
-        Acceleration = config.GetFloat("player", "acceleration");
+        Acceleration = (float)config.GetValue("player", "acceleration");
 
         Texture = Utils.CreateRect(services.GetService<GraphicsDevice>(), 30, 50, Color.Green); 
         Console.WriteLine("creating animations");
