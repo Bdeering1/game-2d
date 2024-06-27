@@ -12,13 +12,16 @@ public class Player: IMovable
 
     public Hitbox Position { get; set; } = new();
     public Vector2 Velocity { get; set; } = new();
-    public float Acceleration { get; } = 10f;
+    public float Acceleration { get; }
 
     private Input Input { get; }
 
     public Player(GameServiceContainer services)
     {
         Input = services.GetService<Input>();
+
+        var config = services.GetService<ConfigurationService>();
+        Acceleration = config.GetFloat("player", "acceleration");
 
         Texture = Utils.CreateRect(services.GetService<GraphicsDevice>(), 30, 50, Color.Green); 
         Console.WriteLine("creating animations");

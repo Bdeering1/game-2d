@@ -13,6 +13,7 @@ public class Game1 : Game
     const int FPS_SMOOTHING = 5;
 
     private GraphicsDeviceManager graphics;
+    private ConfigurationService config;
     private Input input;
     private Stage stage;
     private SpriteBatch spriteBatch;
@@ -35,11 +36,13 @@ public class Game1 : Game
 
     protected override void Initialize()
     {
+        config = new();
         input = new();
         spriteBatch = new(GraphicsDevice);
         frameCounter = new(FPS_SMOOTHING);
         font = Content.Load<SpriteFont>("arial-12");
 
+        Services.AddService<ConfigurationService>(config);
         Services.AddService<Input>(input);
         Services.AddService<SpriteBatch>(spriteBatch);
         Services.AddService<GraphicsDevice>(GraphicsDevice);
