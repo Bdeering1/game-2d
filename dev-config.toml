@@ -1,2 +1,4 @@
-[player]
-acceleration = 5
+[player.acceleration]
+min = 0.0
+max = 100.0
+current = 3.5

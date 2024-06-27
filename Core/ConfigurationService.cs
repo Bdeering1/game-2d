@@ -7,6 +7,9 @@ namespace Game2D;
 public class ConfigurationService
 {
     private const string CONFIG_NAME = "dev-config.toml";
+    private const string MIN_KEY = "min";
+    private const string MAX_KEY = "max";
+    private const string CURRENT_KEY = "current";
 
     private TomlTable table;
     private readonly string configPath;
@@ -41,13 +44,21 @@ public class ConfigurationService
         writer.Flush();
     }
 
-    public float GetInt(string key) => table[key].AsInteger;
-    public float GetInt(string key1, string key2) => table[key1][key2].AsInteger;
-    public void SetInt(string key, int val) => table[key] = val;
-    public void SetInt(string key1, string key2, int val) => table[key1][key2] = val;
+    public int GetInt(string key) => table[key][CURRENT_KEY];
+    public int GetInt(string key1, string key2) => table[key1][key2][CURRENT_KEY];
+    public void SetInt(string key, int val) => table[key][CURRENT_KEY] = val;
+    public void SetInt(string key1, string key2, int val) => table[key1][key2][CURRENT_KEY] = val;
 
-    public float GetFloat(string key) => table[key].AsFloat;
-    public float GetFloat(string key1, string key2) => table[key1][key2].AsFloat;
-    public void SetFloat(string key, float val) => table[key] = val;
-    public void SetFloat(string key1, string key2, float val) => table[key1][key2] = val;
+    public float GetFloat(string key) {
+        var el = table[key][CURRENT_KEY];
+        return el.IsInteger ? (int)el : el;
+    }
+    public float GetFloat(string key1, string key2) {
+        var el = table[key1][key2][CURRENT_KEY];
+        return el.IsInteger ? (int)el : el;
+    }
+    public void SetFloat(string key, float val) => table[key][CURRENT_KEY] = val;
+    public void SetFloat(string key1, string key2, float val) => table[key1][key2][CURRENT_KEY] = val;
+
+    public override string ToString() => table.ToString();
 }
