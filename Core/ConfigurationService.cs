@@ -5,14 +5,14 @@ using Tomlyn;
 
 namespace Game2D;
 
-using Table = Dictionary<string, Dictionary<string, Dictionary<string, object>>>;
+using Table = Dictionary<string, Dictionary<string, List<object>>>;
 
 public class ConfigurationService
 {
     private const string CONFIG_NAME = "dev-config.toml";
-    private const string MIN_KEY = "min";
-    private const string MAX_KEY = "max";
-    private const string CURRENT_KEY = "current";
+    private const int CURRENT_IDX = 0;
+    private const int MIN_IDX = 1;
+    private const int MAX_IDX = 2;
 
     private Table table;
     private readonly string configPath;
@@ -36,11 +36,11 @@ public class ConfigurationService
         File.WriteAllText(configPath, Toml.FromModel(table));
     }
 
-    public object GetValue(string key1, string key2)
-    {
-        var el = table[key1][key2][CURRENT_KEY];
+    public object GetValue(string key1, string key2) {
+        var el = table[key1][key2][CURRENT_IDX];
         return el.GetType() == typeof(double) ? Convert.ToSingle(el) : el;
     }
 
-    public void SetValue(string key1, string key2, object value) => table[key1][key2][CURRENT_KEY] = value;
+    public void SetValue(string key1, string key2, object value) =>
+        table[key1][key2][CURRENT_IDX] = value;
 }
