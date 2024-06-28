@@ -30,5 +30,5 @@ public class FrameCounter
     }
 
     public override string ToString() =>
-        string.Format($"{framerate, 4} fps");
+        string.Format($"{framerate, 4}");
 }

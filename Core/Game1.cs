@@ -10,7 +10,8 @@ public class Game1 : Game
 {
     const int DEFAULT_WIDTH = 1200;
     const int DEFAULT_HEIGHT = 900;
-    const int FPS_SMOOTHING = 5;
+    const int UPDATE_TIME_MICROS = 16_667;
+    const int FPS_SMOOTHING = 10;
 
     private GraphicsDeviceManager graphics;
     private ConfigurationService config;
@@ -20,9 +21,12 @@ public class Game1 : Game
     private Menu menu;
     private Stage stage;
 
-    private FrameCounter frameCounter;
     private SpriteFont font;
+    private FrameCounter tickCounter;
+    private FrameCounter frameCounter;
 
+    private TimeSpan updateTime = TimeSpan.FromMicroseconds(UPDATE_TIME_MICROS);
+    private TimeSpan timer;
     private bool paused;
 
     public Game1()
@@ -30,6 +34,9 @@ public class Game1 : Game
         graphics = new GraphicsDeviceManager(this);
         graphics.PreferredBackBufferWidth = DEFAULT_WIDTH;
         graphics.PreferredBackBufferHeight = DEFAULT_HEIGHT;
+
+        IsFixedTimeStep = false;
+        graphics.SynchronizeWithVerticalRetrace = false;
 
         Window.AllowUserResizing = true;
         Window.ClientSizeChanged += OnResize;
@@ -43,6 +50,7 @@ public class Game1 : Game
         config = new();
         input = new();
         spriteBatch = new(GraphicsDevice);
+        tickCounter = new(FPS_SMOOTHING);
         frameCounter = new(FPS_SMOOTHING);
         font = Content.Load<SpriteFont>("arial-12");
 
@@ -61,9 +69,21 @@ public class Game1 : Game
     protected override void Update(GameTime gameTime)
     {
         input.Update();
-        frameCounter.Update(gameTime);
-
         if (input.IsKeyPressed(Keys.Escape)) paused = !paused;
+
+        timer += gameTime.ElapsedGameTime;
+
+        while (timer >= updateTime)
+        {
+             FixedTimeUpdate(new(gameTime.TotalGameTime, updateTime)); 
+             timer -= updateTime;
+        }
+    }
+
+    private void FixedTimeUpdate(GameTime gameTime)
+    {
+        tickCounter.Update(gameTime);
+
         if (!paused) stage.Update(gameTime);
 
         base.Update(gameTime);
@@ -71,12 +91,13 @@ public class Game1 : Game
 
     protected override void Draw(GameTime gameTime)
     {
+        frameCounter.Update(gameTime);
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
         spriteBatch.Begin(samplerState: SamplerState.PointClamp);
         stage.Draw(gameTime);
 
-        var fps = frameCounter.ToString();
+        var fps = String.Format($"{frameCounter} fps");
         spriteBatch.DrawString(
             font,
             fps,
@@ -84,6 +105,13 @@ public class Game1 : Game
             Color.White
         );
         if (paused) menu.Draw(gameTime);
+        var tps = String.Format($"{tickCounter} tps");
+        spriteBatch.DrawString(
+            font,
+            tps,
+            new Vector2(GraphicsDevice.Viewport.Bounds.Width - font.MeasureString(tps).X - 10, 30),
+            Color.White
+        );
 
         spriteBatch.End();
 
