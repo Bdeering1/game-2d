@@ -14,11 +14,11 @@ public class Player: IMovable
     public Vector2 Velocity { get; set; } = new();
     public float Acceleration { get; }
 
-    private Input Input { get; }
+    private Input input { get; }
 
     public Player(GameServiceContainer services)
     {
-        Input = services.GetService<Input>();
+        input = services.GetService<Input>();
 
         var config = services.GetService<ConfigurationService>();
         Acceleration = (float)config.GetValue("player", "acceleration");
@@ -38,13 +38,15 @@ public class Player: IMovable
     {
         Animations.Update(gameTime);
 
-        var digitalDirection = Input.GetDigitalDirection();
-        var analogDirection = Input.GetAnalogDirection();
-        Velocity += new Vector2(0.0f, 9.8f) + Acceleration *
-                    (!digitalDirection.Equals(Vector2.Zero)
-                     ? digitalDirection
-                     : analogDirection);
-        Position.Pos += Vector2.Multiply(Velocity, (float)gameTime.ElapsedGameTime.TotalSeconds);
+        var digitalDirection = input.GetDigitalDirection();
+        var analogDirection = input.GetAnalogDirection();
+        var gravityAcc = new Vector2(0.0f, 9.8f);
+        var playerAcc = Acceleration *
+                        (!digitalDirection.Equals(Vector2.Zero)
+                         ? digitalDirection
+                         : analogDirection);
+        Velocity += (gravityAcc + playerAcc) * (float)gameTime.ElapsedGameTime.TotalSeconds;
+        Position.Pos += Velocity;
     }
 
     public void Collided(Hitbox other, Hitbox intersection)

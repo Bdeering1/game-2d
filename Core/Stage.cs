@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -8,23 +7,24 @@ namespace Game2D;
 public class Stage
 {
     public List<Chunk> Chunks { get; } = new();
-    private List<IMovable> movables = [];
-    private SpriteBatch SpriteBatch { get; }
-    private Player Player { get; }
+
+    private List<IMovable> movables = new();
+    private SpriteBatch spriteBatch { get; }
+    private Player player { get; }
 
     public Stage(GameServiceContainer services)
     {
-        Player = new(services);
-        SpriteBatch = services.GetService<SpriteBatch>();
+        player = new(services);
+        spriteBatch = services.GetService<SpriteBatch>();
 
         Chunks.Add(new(services));
-        movables.Add(Player);
+        movables.Add(player);
     }
 
     public void Update(GameTime gameTime)
     {
         CheckCollisions();
-        Player.Update(gameTime);
+        player.Update(gameTime);
     }
 
     public void Draw(GameTime gameTime)
@@ -32,8 +32,8 @@ public class Stage
         foreach (var chunk in Chunks) {
             chunk.Draw(gameTime);
         }
-        SpriteBatch.Draw(Player.Texture, Player.Position, Color.Green);
-        SpriteBatch.Draw(Player.Animations.sheet.img, Player.Position, Player.Animations.clipRect, Color.White);
+        spriteBatch.Draw(player.Texture, player.Position, Color.Green);
+        spriteBatch.Draw(player.Animations.sheet.img, player.Position, player.Animations.clipRect, Color.White);
     }
 
     private void CheckCollisions() 

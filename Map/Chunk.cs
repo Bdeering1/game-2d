@@ -16,11 +16,11 @@ public class Chunk {
     public List<Tile> Tiles { get; } = [];
     public List<Hitbox> CollisionBoxes { get; } = [];
 
-    private SpriteBatch SpriteBatch { get; }
+    private SpriteBatch spriteBatch { get; }
 
     public Chunk(GameServiceContainer services) 
     {
-        SpriteBatch = services.GetService<SpriteBatch>();
+        spriteBatch = services.GetService<SpriteBatch>();
 
         var placeholder = Utils.CreateRect(services.GetService<GraphicsDevice>(), TILE_SIZE, TILE_SIZE, Color.Khaki);
         //placeholder tiles at bottom of chunk for testing
@@ -43,11 +43,11 @@ public class Chunk {
     public void Draw(GameTime gameTime)
     {
         foreach (var tile in Tiles) {
-            SpriteBatch.Draw(tile.Texture, Offset + tile.Offset, Color.White);
+            spriteBatch.Draw(tile.Texture, Offset + tile.Offset, Color.White);
         }
         //draw outline of hitboxes for debugging
         foreach(var hb in CollisionBoxes) {
-            SpriteBatch.DrawRectangle(new RectangleF(hb.Pos.X, hb.Pos.Y, hb.Width, hb.Height), Color.Blue, 2);
+            spriteBatch.DrawRectangle(new RectangleF(hb.Pos.X, hb.Pos.Y, hb.Width, hb.Height), Color.Blue, 2);
         }
     }
 

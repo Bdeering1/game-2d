@@ -8,21 +8,27 @@ public class Input
 {
     private const float DEADZONE = 0.5f;
 
-    private KeyboardState keyboard;
-    private MouseState mouse;
-    private GamePadState gamepad;
+    public KeyboardState Keyboard { get; private set; }
+    public MouseState Mouse { get; private set; }
+    public GamePadState Gamepad { get; private set; }
+
+    private KeyboardState prevKeyboard;
+    private GamePadState prevGamepad;
+
+    public bool IsKeyPressed(Keys key) =>
+        prevKeyboard.IsKeyDown(key) && Keyboard.IsKeyUp(key);
 
     public Vector2 GetDigitalDirection()
     {
         Vector2 direction = new(0,0);
 
-        if (keyboard.IsKeyDown(Keys.Left))
+        if (Keyboard.IsKeyDown(Keys.Left))
             direction.X -= 1;
-        if (keyboard.IsKeyDown(Keys.Right))
+        if (Keyboard.IsKeyDown(Keys.Right))
             direction.X += 1;
-        if (keyboard.IsKeyDown(Keys.Up))
+        if (Keyboard.IsKeyDown(Keys.Up))
             direction.Y -= 1;
-        if (keyboard.IsKeyDown(Keys.Down))
+        if (Keyboard.IsKeyDown(Keys.Down))
             direction.Y += 1;
 
         return direction;
@@ -36,17 +42,20 @@ public class Input
             !capabilities.HasLeftXThumbStick ||
             !capabilities.HasLeftYThumbStick) return direction;
 
-        if (Math.Abs(gamepad.ThumbSticks.Left.X) > DEADZONE)
-            direction.X += gamepad.ThumbSticks.Left.X;
-        if (Math.Abs(gamepad.ThumbSticks.Left.Y) > DEADZONE)
-            direction.X += gamepad.ThumbSticks.Left.Y;
+        if (Math.Abs(Gamepad.ThumbSticks.Left.X) > DEADZONE)
+            direction.X += Gamepad.ThumbSticks.Left.X;
+        if (Math.Abs(Gamepad.ThumbSticks.Left.Y) > DEADZONE)
+            direction.X += Gamepad.ThumbSticks.Left.Y;
 
         return direction;
     }
 
     public void Update() {
-        keyboard = Keyboard.GetState();
-        mouse = Mouse.GetState();
-        gamepad = GamePad.GetState(PlayerIndex.One);
+        prevKeyboard = Keyboard;
+        prevGamepad = Gamepad;
+
+        Keyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+        Mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
+        Gamepad = GamePad.GetState(PlayerIndex.One);
     }
 }

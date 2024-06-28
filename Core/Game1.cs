@@ -14,12 +14,16 @@ public class Game1 : Game
 
     private GraphicsDeviceManager graphics;
     private ConfigurationService config;
-    private Input input;
-    private Stage stage;
     private SpriteBatch spriteBatch;
+    private Input input;
+
+    private Menu menu;
+    private Stage stage;
 
     private FrameCounter frameCounter;
     private SpriteFont font;
+
+    private bool paused;
 
     public Game1()
     {
@@ -48,6 +52,7 @@ public class Game1 : Game
         Services.AddService<GraphicsDevice>(GraphicsDevice);
         Services.AddService<ContentManager>(Content);
 
+        menu = new(Services);
         stage = new(Services);
 
         base.Initialize();
@@ -55,12 +60,11 @@ public class Game1 : Game
 
     protected override void Update(GameTime gameTime)
     {
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-            Exit();
-
         input.Update();
-        stage.Update(gameTime);
         frameCounter.Update(gameTime);
+
+        if (input.IsKeyPressed(Keys.Escape)) paused = !paused;
+        if (!paused) stage.Update(gameTime);
 
         base.Update(gameTime);
     }
@@ -79,6 +83,8 @@ public class Game1 : Game
             new Vector2(GraphicsDevice.Viewport.Bounds.Width - font.MeasureString(fps).X - 10, 10),
             Color.White
         );
+        if (paused) menu.Draw(gameTime);
+
         spriteBatch.End();
 
         base.Draw(gameTime);
