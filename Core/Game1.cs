@@ -10,7 +10,7 @@ public class Game1 : Game
 {
     const int DEFAULT_WIDTH = 1200;
     const int DEFAULT_HEIGHT = 900;
-    const int UPDATE_TIME_MICROS = 16_667;
+    const int TARGET_TPS = 120;
     const int FPS_SMOOTHING = 10;
 
     private GraphicsDeviceManager graphics;
@@ -25,7 +25,7 @@ public class Game1 : Game
     private FrameCounter tickCounter;
     private FrameCounter frameCounter;
 
-    private TimeSpan updateTime = TimeSpan.FromMicroseconds(UPDATE_TIME_MICROS);
+    private TimeSpan updateTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / TARGET_TPS);
     private TimeSpan timer;
     private bool paused;
 
@@ -54,11 +54,11 @@ public class Game1 : Game
         frameCounter = new(FPS_SMOOTHING);
         font = Content.Load<SpriteFont>("arial-12");
 
-        Services.AddService<ConfigurationService>(config);
-        Services.AddService<Input>(input);
-        Services.AddService<SpriteBatch>(spriteBatch);
-        Services.AddService<GraphicsDevice>(GraphicsDevice);
-        Services.AddService<ContentManager>(Content);
+        Services.AddService(config);
+        Services.AddService(input);
+        Services.AddService(spriteBatch);
+        Services.AddService(GraphicsDevice);
+        Services.AddService(Content);
 
         menu = new(Services);
         stage = new(Services);

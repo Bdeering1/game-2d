@@ -38,7 +38,11 @@ public class ConfigurationService
 
     public object GetValue(string key1, string key2) {
         var el = table[key1][key2][CURRENT_IDX];
-        return el.GetType() == typeof(double) ? Convert.ToSingle(el) : el;
+        return el switch {
+            double d => Convert.ToSingle(d),
+            long l => Convert.ToInt32(l),
+            _ => el
+        };
     }
 
     public void SetValue(string key1, string key2, object value) =>

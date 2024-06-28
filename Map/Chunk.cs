@@ -8,21 +8,24 @@ using MonoGame.Extended;
 namespace Game2D;
 
 public class Chunk {
-    public const int TILE_SIZE = 32;
     public const int CHUNK_WIDTH = 15;
     public const int CHUNK_HEIGHT = 10;
 
     public Vector2 Offset { get; set; }
-    public List<Tile> Tiles { get; } = [];
-    public List<Hitbox> CollisionBoxes { get; } = [];
+    public List<Tile> Tiles { get; } = new();
+    public List<Hitbox> CollisionBoxes { get; } = new();
 
     private SpriteBatch spriteBatch { get; }
+    private int tileSize { get; }
 
     public Chunk(GameServiceContainer services) 
     {
         spriteBatch = services.GetService<SpriteBatch>();
 
-        var placeholder = Utils.CreateRect(services.GetService<GraphicsDevice>(), TILE_SIZE, TILE_SIZE, Color.Khaki);
+        var config = services.GetService<ConfigurationService>();
+        tileSize = (int)config.GetValue("tile", "size");
+
+        var placeholder = Utils.CreateRect(services.GetService<GraphicsDevice>(), tileSize, tileSize, Color.Khaki);
         //placeholder tiles at bottom of chunk for testing
         for (int i = 0; i < 10; i++) {
             Tiles.Add(new Tile(
@@ -30,8 +33,8 @@ public class Chunk {
                 i, 9,
                 null,
                 CollisionType.Impassable,
-                new Vector2(i * TILE_SIZE, 9 * TILE_SIZE),
-                new Point(TILE_SIZE, TILE_SIZE)
+                new Vector2(i * tileSize, 9 * tileSize),
+                new Point(tileSize, tileSize)
             ));
         }
         //sort tiles for hitbox generation
@@ -82,8 +85,8 @@ public class Chunk {
         return hbs;
     }
     
-    private static Hitbox CreateHitbox(Tile start, Tile end) {
-        return new Hitbox(start.X * TILE_SIZE, start.Y * TILE_SIZE, (end.X - start.X + 1) * TILE_SIZE, (end.Y - start.Y + 1) * TILE_SIZE);
+    private Hitbox CreateHitbox(Tile start, Tile end) {
+        return new Hitbox(start.X * tileSize, start.Y * tileSize, (end.X - start.X + 1) * tileSize, (end.Y - start.Y + 1) * tileSize);
     }
 
     //Associates a hitbox with a list of tiles, 

@@ -15,6 +15,7 @@ public class Player: IMovable
     public float Acceleration { get; }
 
     private Input input { get; }
+    private int tileSize { get; }
 
     public Player(GameServiceContainer services)
     {
@@ -22,6 +23,7 @@ public class Player: IMovable
 
         var config = services.GetService<ConfigurationService>();
         Acceleration = (float)config.GetValue("player", "acceleration");
+        tileSize = (int)config.GetValue("tile", "size");
 
         Texture = Utils.CreateRect(services.GetService<GraphicsDevice>(), 30, 50, Color.Green); 
         Console.WriteLine("creating animations");
@@ -38,15 +40,17 @@ public class Player: IMovable
     {
         Animations.Update(gameTime);
 
+        var deltaTime = (float)gameTime.ElapsedGameTime.Ticks / TimeSpan.TicksPerSecond;
+
         var digitalDirection = input.GetDigitalDirection();
         var analogDirection = input.GetAnalogDirection();
-        var gravityAcc = new Vector2(0.0f, 9.8f);
-        var playerAcc = Acceleration *
+        var gravityAcc = new Vector2(0.0f, 9.8f) * tileSize;
+        var playerAcc = Acceleration * tileSize *
                         (!digitalDirection.Equals(Vector2.Zero)
                          ? digitalDirection
                          : analogDirection);
-        Velocity += (gravityAcc + playerAcc) * (float)gameTime.ElapsedGameTime.TotalSeconds;
-        Position.Pos += Velocity;
+        Velocity += (gravityAcc + playerAcc) * deltaTime;
+        Position.Pos += Velocity * deltaTime;
     }
 
     public void Collided(Hitbox other, Hitbox intersection)

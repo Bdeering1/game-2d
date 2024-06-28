@@ -1,2 +1,5 @@
 [player]
 acceleration = [3.5]
+
+[tile]
+size = [32]
