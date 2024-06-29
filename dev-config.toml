@@ -1,5 +1,7 @@
 [player]
 acceleration = [3.5]
+jumpinggravity = [9.8]
+fallinggravity = [20.0]
 
 [tile]
 size = [32]

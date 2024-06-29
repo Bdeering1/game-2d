@@ -37,6 +37,14 @@ public class Chunk {
                 new Point(tileSize, tileSize)
             ));
         }
+        Tiles.Add(new Tile(
+                placeholder,
+                7, 6,
+                null,
+                CollisionType.Impassable,
+                new Vector2(7 * tileSize, 6 * tileSize),
+                new Point(tileSize, tileSize)
+            ));
         //sort tiles for hitbox generation
         Tiles = [.. Tiles.OrderBy(a => a.Y).ThenBy(a => a.X)];
         
