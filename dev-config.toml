@@ -1,7 +1,9 @@
 [player]
-acceleration = [3.5]
-jumpinggravity = [9.8]
-fallinggravity = [20.0]
+force = [35000.0]
+mass = [60.0]
+jumpforce = [45000.0]
+upgravity = [8.0]
+downgravity = [18.0]
 
 [tile]
 size = [32]

@@ -7,6 +7,7 @@ public interface IMovable
 
     Hitbox Position { get; set; }
     Vector2 Velocity { get; set; }
+    float Mass { get; set; }
 
     public abstract void Collided(Hitbox other, Hitbox intersection);
 
