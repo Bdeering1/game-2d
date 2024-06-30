@@ -11,10 +11,11 @@ public class Stage
     private List<IMovable> movables = new();
     private SpriteBatch spriteBatch { get; }
     private Player player { get; }
+    private Vector2 spawnPos { get; } = new Vector2(0f, 0f);
 
     public Stage(GameServiceContainer services)
     {
-        player = new(services);
+        player = new(services, spawnPos);
         spriteBatch = services.GetService<SpriteBatch>();
 
         Chunks.Add(new(services));
@@ -32,8 +33,8 @@ public class Stage
         foreach (var chunk in Chunks) {
             chunk.Draw(gameTime);
         }
-        spriteBatch.Draw(player.Texture, player.Position, Color.Green);
-        spriteBatch.Draw(player.Animations.sheet.img, player.Position, player.Animations.clipRect, Color.White);
+        spriteBatch.Draw(player.HitboxTexture, player.Position, Color.Green);
+        spriteBatch.Draw(player.Animations.Sheet.img, player.Position + player.Animations.Offset, player.Animations.ClipRect, Color.White);
     }
 
     private void CheckCollisions() 

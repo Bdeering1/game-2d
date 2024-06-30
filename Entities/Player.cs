@@ -7,7 +7,12 @@ namespace Game2D;
 
 public class Player: IMovable
 {
-    public Texture2D Texture { get; set; }
+    private const int TEXTURE_WIDTH = 50;
+    private const int TEXTURE_HEIGHT = 40;
+    private const int HITBOX_WIDTH = 25;
+    private const int HITBOX_HEIGHT = 40;
+
+    public Texture2D HitboxTexture { get; set; }
     public Animations Animations { get; }
 
     public Hitbox Position { get; set; } = new();
@@ -27,7 +32,7 @@ public class Player: IMovable
     private TimeSpan timeSinceOnGround;
     //END PLAYER STATE
 
-    public Player(GameServiceContainer services)
+    public Player(GameServiceContainer services, Vector2 spawnPos)
     {
         input = services.GetService<Input>();
 
@@ -40,15 +45,21 @@ public class Player: IMovable
 
         tileSize = (int)config.GetValue("tile", "size");
 
-        Texture = Utils.CreateRect(services.GetService<GraphicsDevice>(), 30, 50, Color.Green); 
-        Console.WriteLine("creating animations");
+        HitboxTexture = Utils.CreateRect(services.GetService<GraphicsDevice>(), HITBOX_WIDTH, HITBOX_HEIGHT, Color.Green); 
         
         List<(int fps, int startX, int startY, int numFrames)> anims = [
             (16, 0, 0, 18)
         ];
-        Animations = new Animations(services, "player/red-hood-sheet", anims, 50, 40);
+        Animations = new Animations(
+            services,
+            "player/red-hood-sheet",
+            anims,
+            TEXTURE_WIDTH,
+            TEXTURE_HEIGHT,
+            new Vector2((HITBOX_WIDTH - TEXTURE_WIDTH) / 2, (HITBOX_HEIGHT - TEXTURE_HEIGHT) / 2)
+        );
 
-        Position = new Hitbox(0f, 0f, 30f, 50f);
+        Position = new Hitbox(spawnPos.X, spawnPos.Y, (float)HITBOX_WIDTH, (float)HITBOX_HEIGHT);
     }
 
     public void Update(GameTime gameTime)

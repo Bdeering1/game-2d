@@ -7,10 +7,9 @@ namespace Game2D;
 
 public class Animations
 {
-    public SpriteSheet sheet;
-
-    //the source rectangle for the current animation frame
-    public Rectangle clipRect;
+    public Vector2 Offset { get; }
+    public SpriteSheet Sheet { get; }
+    public Rectangle ClipRect;
 
     private double timeSinceFrame;
     private int curAnim;
@@ -19,20 +18,21 @@ public class Animations
     private int x;
     private int y;
 
-    public Animations(GameServiceContainer services, string img, List<(int fps, int startX, int startY, int numFrames)> anims, int spriteWidth, int spriteHeight)
+    public Animations(GameServiceContainer services, string img, List<(int fps, int startX, int startY, int numFrames)> anims, int spriteWidth, int spriteHeight, Vector2 offset)
     {
-        clipRect = new Rectangle(0, 0, spriteWidth, spriteHeight);
+        Sheet = new(services, img, anims, spriteWidth, spriteHeight);
+        ClipRect = new Rectangle(0, 0, spriteWidth, spriteHeight);
+        Offset = offset;
+
         curAnim = 0;
         x = 0;
         y = 0;
-
-        sheet = new(services, img, anims, spriteWidth, spriteHeight);
     }
 
     public void Update(GameTime gameTime)
     {
         timeSinceFrame += gameTime.ElapsedGameTime.TotalNanoseconds;
-        var (startX, startY, numFrames, timePerFrame) = sheet.anims[curAnim];
+        var (startX, startY, numFrames, timePerFrame) = Sheet.anims[curAnim];
 
         //update frame (skip frames if needed)
         while (timeSinceFrame > timePerFrame)
@@ -45,11 +45,11 @@ public class Animations
                 y = startY;
                 curFrame = 0;
             }
-            x = curFrame % sheet.sheetWidth;
-            y = curFrame / sheet.sheetWidth;
+            x = curFrame % Sheet.sheetWidth;
+            y = curFrame / Sheet.sheetWidth;
 
-            clipRect.X = x * sheet.spriteWidth + 1;
-            clipRect.Y = y * sheet.spriteHeight + 1;
+            ClipRect.X = x * Sheet.spriteWidth + 1;
+            ClipRect.Y = y * Sheet.spriteHeight + 1;
             timeSinceFrame -= timePerFrame;
         }
     }
