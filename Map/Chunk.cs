@@ -8,8 +8,8 @@ using MonoGame.Extended;
 namespace Game2D;
 
 public class Chunk {
-    public const int CHUNK_WIDTH = 15;
-    public const int CHUNK_HEIGHT = 10;
+    public const int CHUNK_WIDTH = 24;
+    public const int CHUNK_HEIGHT = 16;
 
     public Vector2 Offset { get; set; }
     public List<Tile> Tiles { get; } = new();
@@ -60,6 +60,7 @@ public class Chunk {
         foreach(var hb in CollisionBoxes) {
             spriteBatch.DrawRectangle(new RectangleF(hb.Pos.X, hb.Pos.Y, hb.Width, hb.Height), Color.Blue, 2);
         }
+        spriteBatch.DrawRectangle(new RectangleF(Offset.X, Offset.Y, CHUNK_WIDTH * tileSize, CHUNK_HEIGHT * tileSize), Color.Red, 2);
     }
 
     private List<Hitbox> GenHitboxes() {
