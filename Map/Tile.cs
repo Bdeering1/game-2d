@@ -10,4 +10,4 @@ public enum CollisionType
     Platform
 }
 
-public record struct Tile(Texture2D Texture, int X, int Y, Hitbox Hitbox, CollisionType Collision, Vector2 Offset, Point Size);
+public record struct Tile(Texture2D Texture, int X, int Y, Point Size, CollisionType Collision, Hitbox Hitbox);

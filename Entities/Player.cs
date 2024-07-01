@@ -1,3 +1,4 @@
+using MonoGame.Extended;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -7,10 +8,14 @@ namespace Game2D;
 
 public class Player: IMovable
 {
+    private const int TEXTURE_SCALING = 2;
     private const int TEXTURE_WIDTH = 50;
     private const int TEXTURE_HEIGHT = 40;
-    private const int HITBOX_WIDTH = 25;
-    private const int HITBOX_HEIGHT = 40;
+    private const int HITBOX_WIDTH = 40;
+    private const int HITBOX_HEIGHT = 70;
+
+    private Point drawSize { get; } = new Point(TEXTURE_WIDTH * TEXTURE_SCALING, TEXTURE_HEIGHT * TEXTURE_SCALING);
+    public RectangleF Drawbox => new RectangleF(Position + Animations.Offset, drawSize);
 
     public Texture2D HitboxTexture { get; set; }
     public Animations Animations { get; }
@@ -24,6 +29,7 @@ public class Player: IMovable
     private float upGravity { get; }
     private float downGravity { get; }
     private float groundFriction { get; }
+    private float velocityCap { get; }
 
     private Input input { get; }
     private int tileSize { get; }
@@ -38,14 +44,15 @@ public class Player: IMovable
         input = services.GetService<Input>();
 
         var config = services.GetService<ConfigurationService>();
-        Force = (float)config.GetValue("player", "force");
-        Mass = (float)config.GetValue("player", "mass");
-        jumpForce = (float)config.GetValue("player", "jumpForce");
-        upGravity = (float)config.GetValue("player", "upGravity");
-        downGravity = (float)config.GetValue("player", "downGravity");
-        groundFriction = (float)config.GetValue("player", "groundFriction");
-
         tileSize = (int)config.GetValue("tile", "size");
+
+        Mass = (float)config.GetValue("player", "mass");
+        Force = (float)config.GetValue("player", "force") * tileSize;
+        jumpForce = (float)config.GetValue("player", "jumpForce") * tileSize;
+        upGravity = (float)config.GetValue("player", "upGravity") * tileSize;
+        downGravity = (float)config.GetValue("player", "downGravity") * tileSize;
+        velocityCap = (float)config.GetValue("player", "velocityCap") * tileSize;
+        groundFriction = (float)config.GetValue("player", "groundFriction");
 
         HitboxTexture = Utils.CreateRect(services.GetService<GraphicsDevice>(), HITBOX_WIDTH, HITBOX_HEIGHT, Color.Green); 
         
@@ -58,7 +65,7 @@ public class Player: IMovable
             anims,
             TEXTURE_WIDTH,
             TEXTURE_HEIGHT,
-            new Vector2((HITBOX_WIDTH - TEXTURE_WIDTH) / 2, (HITBOX_HEIGHT - TEXTURE_HEIGHT) / 2)
+            new Vector2((HITBOX_WIDTH - drawSize.X) / 2, HITBOX_HEIGHT - drawSize.Y + 1)
         );
 
         Position = new Hitbox(spawnPos.X, spawnPos.Y, (float)HITBOX_WIDTH, (float)HITBOX_HEIGHT);
@@ -78,7 +85,7 @@ public class Player: IMovable
                          : input.GetAnalogDirection());
         
         fX += direction.X * Force;
-        fY = Mass * tileSize * (Velocity.Y < -120.0 ? upGravity : downGravity);
+        fY = Mass * (Velocity.Y < -120.0 ? upGravity : downGravity);
 
         if(onGround) {
             fY += direction.Y * jumpForce * tileSize;
@@ -92,6 +99,7 @@ public class Player: IMovable
         var playerAcc = new Vector2(fX/Mass, fY/Mass);
 
         Velocity += playerAcc * deltaTime;
+        Velocity = Velocity with { X = Math.Min(Math.Abs(Velocity.X), velocityCap) * (Velocity.X > 0 ? 1 : -1) };
         Position.Pos += Velocity * deltaTime;
 
         onGround = false;

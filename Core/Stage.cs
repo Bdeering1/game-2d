@@ -34,7 +34,7 @@ public class Stage
             chunk.Draw(gameTime);
         }
         spriteBatch.Draw(player.HitboxTexture, player.Position, Color.Green);
-        spriteBatch.Draw(player.Animations.Sheet.img, player.Position + player.Animations.Offset, player.Animations.ClipRect, Color.White);
+        spriteBatch.Draw(player.Animations.Sheet.img, (Rectangle)player.Drawbox, player.Animations.ClipRect, Color.White);
     }
 
     private void CheckCollisions() 
