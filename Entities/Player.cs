@@ -13,6 +13,7 @@ public class Player: IMovable
     private const int TEXTURE_HEIGHT = 40;
     private const int HITBOX_WIDTH = 40;
     private const int HITBOX_HEIGHT = 70;
+    private const float CORNER_MARGIN = 4f;
 
     private Point drawSize { get; } = new Point(TEXTURE_WIDTH * TEXTURE_SCALING, TEXTURE_HEIGHT * TEXTURE_SCALING);
     public RectangleF Drawbox => new RectangleF(Position + Animations.Offset, drawSize);
@@ -30,13 +31,16 @@ public class Player: IMovable
     private float downGravity { get; }
     private float groundFriction { get; }
     private float velocityCap { get; }
-
+    private int jumpDelay { get; }
+    
     private Input input { get; }
     private int tileSize { get; }
 
     //PLAYER STATE
     private bool onGround;
+    private bool wasOnGround;
     private TimeSpan timeSinceOnGround;
+    private int ticksSinceLanded;
     //END PLAYER STATE
 
     public Player(GameServiceContainer services, Vector2 spawnPos)
@@ -44,15 +48,16 @@ public class Player: IMovable
         input = services.GetService<Input>();
 
         var config = services.GetService<ConfigurationService>();
-        tileSize = (int)config.GetValue("tile", "size");
+        var metreSize = (int)config.GetValue("tile", "metreSize");
 
         Mass = (float)config.GetValue("player", "mass");
-        Force = (float)config.GetValue("player", "force") * tileSize;
-        jumpForce = (float)config.GetValue("player", "jumpForce") * tileSize;
-        upGravity = (float)config.GetValue("player", "upGravity") * tileSize;
-        downGravity = (float)config.GetValue("player", "downGravity") * tileSize;
-        velocityCap = (float)config.GetValue("player", "velocityCap") * tileSize;
+        Force = (float)config.GetValue("player", "force") * metreSize;
+        jumpForce = (float)config.GetValue("player", "jumpForce") * metreSize;
+        upGravity = (float)config.GetValue("player", "upGravity") * metreSize;
+        downGravity = (float)config.GetValue("player", "downGravity") * metreSize;
+        velocityCap = (float)config.GetValue("player", "velocityCap") * metreSize;
         groundFriction = (float)config.GetValue("player", "groundFriction");
+        jumpDelay = (int)config.GetValue("player", "jumpDelay");
 
         HitboxTexture = Utils.CreateRect(services.GetService<GraphicsDevice>(), HITBOX_WIDTH, HITBOX_HEIGHT, Color.Green); 
         
@@ -72,7 +77,7 @@ public class Player: IMovable
     }
 
     public void Update(GameTime gameTime)
-    {
+    {       
         Animations.Update(gameTime);
 
         var deltaTime = (float)gameTime.ElapsedGameTime.Ticks / TimeSpan.TicksPerSecond;
@@ -88,7 +93,10 @@ public class Player: IMovable
         fY = Mass * (Velocity.Y < -120.0 ? upGravity : downGravity);
 
         if(onGround) {
-            fY += direction.Y * jumpForce * tileSize;
+            ticksSinceLanded++;
+
+            if(ticksSinceLanded > jumpDelay)
+                fY += direction.Y * jumpForce;
 
             //ground friction
             if (fX == 0 || ((fX < 0) != (Velocity.X < 0))) {
@@ -102,6 +110,7 @@ public class Player: IMovable
         Velocity = Velocity with { X = Math.Min(Math.Abs(Velocity.X), velocityCap) * (Velocity.X > 0 ? 1 : -1) };
         Position.Pos += Velocity * deltaTime;
 
+        wasOnGround = onGround;
         onGround = false;
         timeSinceOnGround += gameTime.ElapsedGameTime;
     }
@@ -109,9 +118,10 @@ public class Player: IMovable
     public void Collided(Hitbox other, Hitbox intersection)
     {
         //collision on top or bottom (1/8 tile allowance for landing on top of tile)
-        if (intersection.Width + tileSize/8 > intersection.Height) {
+        if (intersection.Width + CORNER_MARGIN > intersection.Height) {
             if (Position.Pos.Y < other.Pos.Y) { //collision on bottom of player
                 //on ground state
+                if(!wasOnGround) ticksSinceLanded = 0;
                 onGround = true;
                 timeSinceOnGround = TimeSpan.Zero;
                 Position.Pos.Y = other.Pos.Y - Position.Height;

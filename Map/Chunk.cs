@@ -3,12 +3,13 @@ using System.Linq;
 using MonoGame.Extended;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace Game2D;
 
 public class Chunk {
-    public const int CHUNK_WIDTH = 24;
-    public const int CHUNK_HEIGHT = 20;
+    public const int CHUNK_WIDTH = 32;
+    public const int CHUNK_HEIGHT = 24;
 
     public Vector2 Offset { get; set; }
     public List<Tile> Tiles { get; } = new();
@@ -35,8 +36,7 @@ public class Chunk {
         AddImpassable(placeholder, CHUNK_WIDTH - 1, CHUNK_HEIGHT - 3);
 
         //sort tiles for hitbox generation
-        Tiles = [.. Tiles.OrderBy(a => a.Y).ThenBy(a => a.X)];
-        
+        Tiles = [.. Tiles.OrderBy(a => a.X).ThenBy(a => a.Y)];
         CollisionBoxes = GenHitboxes();
     }
 
@@ -58,11 +58,10 @@ public class Chunk {
     {
         List<Hitbox> hbs = [];
         //find largest vertical hitboxes that fill all of the boxes
-        int curX = Tiles[0].X;
         int hbStart = 0;
         for (int i = 1; i < Tiles.Count; i++) {
             Tile tile = Tiles[i];
-            if (tile.X == curX && Tiles[hbStart].X == curX) {
+            if (tile.X == Tiles[hbStart].X) {
                 //the tiles are not vertically adjacent
                 if (tile.Y-1 != Tiles[i-1].Y) {
                     Hitbox hb = CreateHitbox(Tiles[hbStart], Tiles[i-1]);
@@ -74,7 +73,6 @@ public class Chunk {
                 Hitbox hb = CreateHitbox(Tiles[hbStart], Tiles[i-1]);
                 hbs.Add(hb);
                 AssociateHitbox(hbStart, i-1, hb);
-                curX = tile.X;
                 hbStart = i;
             }
         }
