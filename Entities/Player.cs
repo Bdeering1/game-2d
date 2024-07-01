@@ -23,6 +23,7 @@ public class Player: IMovable
     private float jumpForce { get; }
     private float upGravity { get; }
     private float downGravity { get; }
+    private float groundFriction { get; }
 
     private Input input { get; }
     private int tileSize { get; }
@@ -39,9 +40,10 @@ public class Player: IMovable
         var config = services.GetService<ConfigurationService>();
         Force = (float)config.GetValue("player", "force");
         Mass = (float)config.GetValue("player", "mass");
-        jumpForce = (float)config.GetValue("player", "jumpforce");
-        upGravity = (float)config.GetValue("player", "upgravity");
-        downGravity = (float)config.GetValue("player", "downgravity");
+        jumpForce = (float)config.GetValue("player", "jumpForce");
+        upGravity = (float)config.GetValue("player", "upGravity");
+        downGravity = (float)config.GetValue("player", "downGravity");
+        groundFriction = (float)config.GetValue("player", "groundFriction");
 
         tileSize = (int)config.GetValue("tile", "size");
 
@@ -76,16 +78,15 @@ public class Player: IMovable
                          : input.GetAnalogDirection());
         
         fX += direction.X * Force;
-        if (Velocity.Y < -120.0) {
-            fY = upGravity * Mass * tileSize;
-        } else {
-            fY = downGravity * Mass * tileSize;
-        }
+        fY = Mass * tileSize * (Velocity.Y < -120.0 ? upGravity : downGravity);
+
         if(onGround) {
             fY += direction.Y * jumpForce * tileSize;
 
             //ground friction
-            fX += Velocity.X > 0 ? -(Mass * upGravity * 10.0f) : (Mass * upGravity * 10.0f);
+            if (fX == 0 || ((fX < 0) != (Velocity.X < 0))) {
+                fX += Mass * upGravity * groundFriction * (Velocity.X > 0 ? -1: 1);
+            }
         }
 
         var playerAcc = new Vector2(fX/Mass, fY/Mass);
