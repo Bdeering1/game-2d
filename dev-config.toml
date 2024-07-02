@@ -7,6 +7,7 @@ downGravity = [24.0] # tiles/s^2
 groundFriction = [0.8]
 velocityCap = [5.5] # tiles/s
 jumpDelay = [4] # ticks
+cornerMargin = [4.0]
 
 [tile]
 metreSize = [32]

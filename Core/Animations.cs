@@ -68,7 +68,7 @@ public class Animations
     }
 
     public void StartTransition(int transitionAnim, int target) {
-        if (transitioning) return;
+        if (transitionAnim == curAnim) return;
         
         transitioning = true;
         if (curAnim != transitionAnim)
@@ -90,7 +90,6 @@ public class Animations
         //transitional animations take priority
         if ((!force && transitioning) || animation == curAnim) return;
         
-        Console.WriteLine("resetting animation");
         curAnim = animation;
         var (startX, startY, _, _) = Sheet.anims[curAnim];
         x = startX;

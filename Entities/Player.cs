@@ -11,9 +11,8 @@ public class Player: IMovable
     private const int TEXTURE_SCALING = 2;
     private const int TEXTURE_WIDTH = 50;
     private const int TEXTURE_HEIGHT = 40;
-    private const int HITBOX_WIDTH = 40;
-    private const int HITBOX_HEIGHT = 70;
-    private const float CORNER_MARGIN = 4f;
+    private const int HITBOX_WIDTH = 30;
+    private const int HITBOX_HEIGHT = 65;
 
     private Point drawSize { get; } = new Point(TEXTURE_WIDTH * TEXTURE_SCALING, TEXTURE_HEIGHT * TEXTURE_SCALING);
     public RectangleF Drawbox => new RectangleF(Position + Animations.Offset, drawSize);
@@ -25,6 +24,8 @@ public class Player: IMovable
 
     public Hitbox Position { get; set; } = new();
     public Vector2 Velocity { get; set; } = new();
+
+    /* From Config */
     public float Mass { get; set; }
     public float Force { get; }
     
@@ -34,18 +35,18 @@ public class Player: IMovable
     private float groundFriction { get; }
     private float velocityCap { get; }
     private int jumpDelay { get; }
-    
-    private Input input { get; }
-    private int tileSize { get; }
 
+    private float cornerMargin { get; }
+    
+    /* Services */
+    private Input input { get; }
+
+    /* Plyaer State */
     private bool facingRight;
     private bool wasFacingRight;
-
-    //PLAYER STATE
     private bool onGround;
     private bool wasOnGround;
     private int ticksSinceLanded;
-    //END PLAYER STATE
 
     public Player(GameServiceContainer services, Vector2 spawnPos)
     {
@@ -62,6 +63,7 @@ public class Player: IMovable
         velocityCap = (float)config.GetValue("player", "velocityCap") * metreSize;
         groundFriction = (float)config.GetValue("player", "groundFriction");
         jumpDelay = (int)config.GetValue("player", "jumpDelay");
+        cornerMargin = (float)config.GetValue("player", "cornerMargin");
 
         HitboxTexture = Utils.CreateRect(services.GetService<GraphicsDevice>(), HITBOX_WIDTH, HITBOX_HEIGHT, Color.Green); 
         
@@ -78,10 +80,10 @@ public class Player: IMovable
             anims,
             TEXTURE_WIDTH,
             TEXTURE_HEIGHT,
-            new Vector2((HITBOX_WIDTH - drawSize.X) / 2, HITBOX_HEIGHT - drawSize.Y)
+            new Vector2((HITBOX_WIDTH - drawSize.X) / 2, HITBOX_HEIGHT - drawSize.Y + 2)
         );
 
-        Position = new Hitbox(spawnPos.X, spawnPos.Y, (float)HITBOX_WIDTH, (float)HITBOX_HEIGHT);
+        Position = new Hitbox(spawnPos, new Vector2(HITBOX_WIDTH, HITBOX_HEIGHT));
     }
 
     public void Update(GameTime gameTime)
@@ -129,8 +131,8 @@ public class Player: IMovable
 
     public void Collided(Hitbox other, Hitbox intersection)
     {
-        //collision on top or bottom (1/8 tile allowance for landing on top of tile)
-        if (intersection.Width + CORNER_MARGIN > intersection.Height) {
+        //collision on top or bottom
+        if (intersection.Width + (Velocity.X != 0 ? cornerMargin : 0) > intersection.Height) {
             if (Position.Pos.Y < other.Pos.Y) { //collision on bottom of player
                 //on ground state
                 if(!wasOnGround) ticksSinceLanded = 0;
@@ -184,7 +186,7 @@ public class Player: IMovable
                 Animations.SetAnimation((int)PlayerAnimations.RUNNING);
                 break;
             case (_, PlayerState.JUMPING):
-                Animations.SetAnimation((int)PlayerAnimations.JUMPING, true);
+                Animations.StartTransition((int)PlayerAnimations.JUMPING, (int)PlayerAnimations.FALLING);
                 break;
             case (_, PlayerState.FALLING):
                 Animations.SetAnimation((int)PlayerAnimations.FALLING);

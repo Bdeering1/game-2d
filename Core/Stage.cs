@@ -33,7 +33,7 @@ public class Stage
         foreach (var chunk in Chunks) {
             chunk.Draw(gameTime);
         }
-        //spriteBatch.Draw(player.HitboxTexture, player.Position, Color.Green);
+        // spriteBatch.Draw(player.HitboxTexture, player.Position, Color.Green);
         spriteBatch.Draw(player.Animations.Sheet.img, (Rectangle)player.Drawbox, player.Animations.ClipRect, Color.White, 0f, Vector2.Zero, player.Animations.reflected ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0f);
     }
 
@@ -43,9 +43,7 @@ public class Stage
             foreach (var m in movables) {
                 foreach(var hb in chunk.CollisionBoxes) {
                     Hitbox intersection = m.Position.Intersects(hb);
-                    if(intersection != null) {
-                       m.Collided(hb, intersection);
-                    }
+                    if(intersection != null) m.Collided(hb, intersection);
                 }
             }
         }
