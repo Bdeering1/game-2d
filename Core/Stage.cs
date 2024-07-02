@@ -24,8 +24,8 @@ public class Stage
 
     public void Update(GameTime gameTime)
     {
-        CheckCollisions();
         player.Update(gameTime);
+        CheckCollisions();
     }
 
     public void Draw(GameTime gameTime)
@@ -33,8 +33,8 @@ public class Stage
         foreach (var chunk in Chunks) {
             chunk.Draw(gameTime);
         }
-        spriteBatch.Draw(player.HitboxTexture, player.Position, Color.Green);
-        spriteBatch.Draw(player.Animations.Sheet.img, (Rectangle)player.Drawbox, player.Animations.ClipRect, Color.White);
+        //spriteBatch.Draw(player.HitboxTexture, player.Position, Color.Green);
+        spriteBatch.Draw(player.Animations.Sheet.img, (Rectangle)player.Drawbox, player.Animations.ClipRect, Color.White, 0f, Vector2.Zero, player.Animations.reflected ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0f);
     }
 
     private void CheckCollisions() 

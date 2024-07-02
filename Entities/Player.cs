@@ -20,6 +20,8 @@ public class Player: IMovable
 
     public Texture2D HitboxTexture { get; set; }
     public Animations Animations { get; }
+    public PlayerState State { get; set; }
+    private PlayerState previousState;
 
     public Hitbox Position { get; set; } = new();
     public Vector2 Velocity { get; set; } = new();
@@ -36,10 +38,12 @@ public class Player: IMovable
     private Input input { get; }
     private int tileSize { get; }
 
+    private bool facingRight;
+    private bool wasFacingRight;
+
     //PLAYER STATE
     private bool onGround;
     private bool wasOnGround;
-    private TimeSpan timeSinceOnGround;
     private int ticksSinceLanded;
     //END PLAYER STATE
 
@@ -62,7 +66,11 @@ public class Player: IMovable
         HitboxTexture = Utils.CreateRect(services.GetService<GraphicsDevice>(), HITBOX_WIDTH, HITBOX_HEIGHT, Color.Green); 
         
         List<(int fps, int startX, int startY, int numFrames)> anims = [
-            (16, 0, 0, 18)
+            (16, 0, 0, 18), // idle
+            (16, 2, 2, 24), // running
+            (16, 2, 5, 11), // jumping
+            (16, 5, 6, 3), // falling
+            (8, 0, 7, 4), //landing
         ];
         Animations = new Animations(
             services,
@@ -70,14 +78,14 @@ public class Player: IMovable
             anims,
             TEXTURE_WIDTH,
             TEXTURE_HEIGHT,
-            new Vector2((HITBOX_WIDTH - drawSize.X) / 2, HITBOX_HEIGHT - drawSize.Y + 1)
+            new Vector2((HITBOX_WIDTH - drawSize.X) / 2, HITBOX_HEIGHT - drawSize.Y)
         );
 
         Position = new Hitbox(spawnPos.X, spawnPos.Y, (float)HITBOX_WIDTH, (float)HITBOX_HEIGHT);
     }
 
     public void Update(GameTime gameTime)
-    {       
+    {
         Animations.Update(gameTime);
 
         var deltaTime = (float)gameTime.ElapsedGameTime.Ticks / TimeSpan.TicksPerSecond;
@@ -92,6 +100,10 @@ public class Player: IMovable
         fX += direction.X * Force;
         fY = Mass * (Velocity.Y < -120.0 ? upGravity : downGravity);
 
+        previousState = State;
+        State = GetState(fX);
+        SetAnimation();
+
         if(onGround) {
             ticksSinceLanded++;
 
@@ -99,7 +111,7 @@ public class Player: IMovable
                 fY += direction.Y * jumpForce;
 
             //ground friction
-            if (fX == 0 || ((fX < 0) != (Velocity.X < 0))) {
+            if ((fX == 0 || ((fX < 0) != (Velocity.X < 0))) && Math.Abs(Velocity.X) > 5f) {
                 fX += Mass * upGravity * groundFriction * (Velocity.X > 0 ? -1: 1);
             }
         }
@@ -108,11 +120,11 @@ public class Player: IMovable
 
         Velocity += playerAcc * deltaTime;
         Velocity = Velocity with { X = Math.Min(Math.Abs(Velocity.X), velocityCap) * (Velocity.X > 0 ? 1 : -1) };
+        if (fX == 0 && Math.Abs(Velocity.X) < 5f) Velocity = Velocity with { X = 0f };
         Position.Pos += Velocity * deltaTime;
 
         wasOnGround = onGround;
         onGround = false;
-        timeSinceOnGround += gameTime.ElapsedGameTime;
     }
 
     public void Collided(Hitbox other, Hitbox intersection)
@@ -123,7 +135,6 @@ public class Player: IMovable
                 //on ground state
                 if(!wasOnGround) ticksSinceLanded = 0;
                 onGround = true;
-                timeSinceOnGround = TimeSpan.Zero;
                 Position.Pos.Y = other.Pos.Y - Position.Height;
             } else { //collision on top of player
                 Position.Pos.Y = other.Pos.Y + other.Height;
@@ -138,4 +149,61 @@ public class Player: IMovable
             Velocity = new Vector2(0.0f, Velocity.Y);
         }
     }
+
+    private PlayerState GetState(float fX) {
+        bool xVelSignificant = Math.Abs(Velocity.X) > 5f;
+        bool yVelSignificant = Math.Abs(Velocity.Y) > 5f;
+        var yDir = Velocity.Y > 0;
+        
+        if (fX != 0) facingRight = fX > 0;
+        if (xVelSignificant || fX != 0) wasFacingRight = facingRight;
+
+        Animations.reflected = wasFacingRight;
+        if (yVelSignificant) {
+            if(yDir) return PlayerState.FALLING;
+                else return PlayerState.JUMPING;
+        } else if (xVelSignificant) {
+            return PlayerState.RUNNING;
+        } else {
+            return PlayerState.IDLE;
+        }
+    }
+
+    void SetAnimation() {
+        switch ((previousState, State)) {
+            case (PlayerState.FALLING, PlayerState.IDLE):
+                Animations.StartTransition((int)PlayerAnimations.LANDING, (int)PlayerAnimations.IDLING);
+                break;
+            case (PlayerState.FALLING, PlayerState.RUNNING):
+                Animations.StartTransition((int)PlayerAnimations.LANDING, (int)PlayerAnimations.RUNNING);
+                break;
+            case (_, PlayerState.IDLE):
+                Animations.SetAnimation((int)PlayerAnimations.IDLING);
+                break;
+            case (_, PlayerState.RUNNING):
+                Animations.SetAnimation((int)PlayerAnimations.RUNNING);
+                break;
+            case (_, PlayerState.JUMPING):
+                Animations.SetAnimation((int)PlayerAnimations.JUMPING, true);
+                break;
+            case (_, PlayerState.FALLING):
+                Animations.SetAnimation((int)PlayerAnimations.FALLING);
+                break;
+        }
+    }
+}
+
+public enum PlayerState {
+    IDLE,
+    RUNNING,
+    JUMPING,
+    FALLING
+}
+
+public enum PlayerAnimations {
+    IDLING = 0,
+    RUNNING = 1,
+    JUMPING = 2,
+    FALLING = 3,
+    LANDING = 4,
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -13,6 +14,9 @@ public class Animations
 
     private double timeSinceFrame;
     private int curAnim;
+    private bool transitioning;
+    private int transitionTarget;
+    public bool reflected;
     private int curFrame = 0;
     //x/y index of the current animation frame
     private int x;
@@ -25,33 +29,74 @@ public class Animations
         Offset = offset;
 
         curAnim = 0;
+        transitionTarget = 0;
+        transitioning = false;
+        reflected = false;
         x = 0;
         y = 0;
     }
 
     public void Update(GameTime gameTime)
     {
+        //Console.WriteLine(curAnim);
         timeSinceFrame += gameTime.ElapsedGameTime.TotalNanoseconds;
-        var (startX, startY, numFrames, timePerFrame) = Sheet.anims[curAnim];
+        (int startX, int startY, int numFrames, int timePerFrame) anim = Sheet.anims[curAnim];
 
         //update frame (skip frames if needed)
-        while (timeSinceFrame > timePerFrame)
+        while (timeSinceFrame > anim.timePerFrame)
         {
             curFrame++;
 
-            if (curFrame >= numFrames)
+            if (curFrame >= anim.startY * Sheet.sheetWidth + anim.startX + anim.numFrames)
             {
-                x = startX;
-                y = startY;
-                curFrame = 0;
+                if(transitioning) {
+                    transitioning = false;
+                    curAnim = transitionTarget;
+                    anim = Sheet.anims[curAnim];
+                }
+                x = anim.startX;
+                y = anim.startY;
+                curFrame = anim.startY * Sheet.sheetWidth + anim.startX;
             }
             x = curFrame % Sheet.sheetWidth;
             y = curFrame / Sheet.sheetWidth;
 
             ClipRect.X = x * Sheet.spriteWidth + 1;
             ClipRect.Y = y * Sheet.spriteHeight + 1;
-            timeSinceFrame -= timePerFrame;
+            timeSinceFrame -= anim.timePerFrame;
         }
+    }
+
+    public void StartTransition(int transitionAnim, int target) {
+        if (transitioning) return;
+        
+        transitioning = true;
+        if (curAnim != transitionAnim)
+        {
+            curAnim = transitionAnim;
+            var (startX, startY, _, _) = Sheet.anims[curAnim];
+            x = startX;
+            y = startY;
+            curFrame = startY * Sheet.sheetWidth + startX;
+            timeSinceFrame = 0;
+        } else {
+            var (startX, startY, _, _) = Sheet.anims[curAnim];
+            curFrame = startY * Sheet.sheetWidth + startX;
+        }
+        transitionTarget = target;
+    }
+
+    public void SetAnimation(int animation, bool force = false) {
+        //transitional animations take priority
+        if ((!force && transitioning) || animation == curAnim) return;
+        
+        Console.WriteLine("resetting animation");
+        curAnim = animation;
+        var (startX, startY, _, _) = Sheet.anims[curAnim];
+        x = startX;
+        y = startY;
+        curFrame = startY * Sheet.sheetWidth + startX;
+        timeSinceFrame = 0;
     }
 }
 
