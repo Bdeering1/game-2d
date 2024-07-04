@@ -17,6 +17,7 @@ public class Game1 : Game
     private ConfigurationService config;
     private SpriteBatch spriteBatch;
     private Input input;
+    private MapTextures mapTextures;
 
     private Menu menu;
     private Stage stage;
@@ -31,9 +32,11 @@ public class Game1 : Game
 
     public Game1()
     {
-        graphics = new GraphicsDeviceManager(this);
-        graphics.PreferredBackBufferWidth = DEFAULT_WIDTH;
-        graphics.PreferredBackBufferHeight = DEFAULT_HEIGHT;
+        graphics = new GraphicsDeviceManager(this)
+        {
+            PreferredBackBufferWidth = DEFAULT_WIDTH,
+            PreferredBackBufferHeight = DEFAULT_HEIGHT
+        };
 
         IsFixedTimeStep = false;
         graphics.SynchronizeWithVerticalRetrace = false;
@@ -52,10 +55,13 @@ public class Game1 : Game
         spriteBatch = new(GraphicsDevice);
         tickCounter = new(FPS_SMOOTHING);
         frameCounter = new(FPS_SMOOTHING);
+        mapTextures = new MapTextures(Content, config, GraphicsDevice);
+
         font = Content.Load<SpriteFont>("arial-12");
 
         Services.AddService(config);
         Services.AddService(input);
+        Services.AddService(mapTextures);
         Services.AddService(spriteBatch);
         Services.AddService(GraphicsDevice);
         Services.AddService(Content);
@@ -69,7 +75,10 @@ public class Game1 : Game
     protected override void Update(GameTime gameTime)
     {
         input.Update();
-        if (input.IsKeyPressed(Keys.Escape)) paused = !paused;
+        if (input.IsKeyPressed(Keys.Escape)) {
+            paused = !paused;
+            menu.Reset();
+        }
 
         timer += gameTime.ElapsedGameTime;
 
@@ -85,7 +94,8 @@ public class Game1 : Game
         tickCounter.Update(gameTime);
 
         if (!paused) stage.Update(gameTime);
-
+        else menu.Update(gameTime);
+        
         base.Update(gameTime);
     }
 

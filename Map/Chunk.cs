@@ -12,15 +12,18 @@ public class Chunk {
     public const int CHUNK_HEIGHT = 24;
 
     public Vector2 Offset { get; set; }
+    public Rectangle ChunkBounds { get; set; }
     public List<Tile> Tiles { get; } = new();
     public List<Hitbox> CollisionBoxes { get; } = new();
 
     private SpriteBatch spriteBatch { get; }
+    private MapTextures mapTextures { get; }
     private int tileSize { get; }
 
-    public Chunk(GameServiceContainer services) 
+    public Chunk(GameServiceContainer services)
     {
         spriteBatch = services.GetService<SpriteBatch>();
+        mapTextures = services.GetService<MapTextures>();
 
         var config = services.GetService<ConfigurationService>();
         tileSize = (int)config.GetValue("tile", "size");
@@ -34,6 +37,7 @@ public class Chunk {
         AddImpassable(placeholder, CHUNK_WIDTH / 2, CHUNK_HEIGHT - 3);
         AddImpassable(placeholder, CHUNK_WIDTH - 1, CHUNK_HEIGHT - 2);
         AddImpassable(placeholder, CHUNK_WIDTH - 1, CHUNK_HEIGHT - 3);
+        ChunkBounds = new Rectangle(Offset.ToPoint(), new Point(CHUNK_WIDTH * tileSize, CHUNK_HEIGHT * tileSize));
 
         //sort tiles for hitbox generation
         Tiles = [.. Tiles.OrderBy(a => a.X).ThenBy(a => a.Y)];
@@ -98,6 +102,16 @@ public class Chunk {
         }
     }
 
+    public void AddTile(int texture, int x, int y, CollisionType collisionType) {
+        Tiles.Add(new Tile(
+            mapTextures.GetTexture(texture),
+            x, y,
+            new Point(tileSize, tileSize),
+            collisionType,
+            null
+        ));
+    }
+
     private void AddImpassable(Texture2D texture, int x, int y) =>
         Tiles.Add(new Tile(
             texture,
@@ -106,4 +120,20 @@ public class Chunk {
             CollisionType.Impassable,
             null
         ));
+
+    public bool HasTileAt(int x, int y) {
+        foreach (Tile t in Tiles) {
+            if (t.X == x && t.Y == y) return true;
+        }
+        return false;
+    }
+
+    public void RemoveTileAt(int x, int y) {
+        foreach (Tile t in Tiles) {
+            if (t.X == x && t.Y == y) {
+                Tiles.Remove(t);
+                return;
+            }
+        }
+    }
 }
