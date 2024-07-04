@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -28,6 +29,7 @@ public class Game1 : Game
 
     private TimeSpan updateTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / TARGET_TPS);
     private TimeSpan timer;
+    private long tickTime = 0;
     private bool paused;
 
     public Game1()
@@ -91,12 +93,15 @@ public class Game1 : Game
 
     private void FixedTimeUpdate(GameTime gameTime)
     {
+        var timeThisFrame = Stopwatch.StartNew();
         tickCounter.Update(gameTime);
 
         if (!paused) stage.Update(gameTime);
         else menu.Update(gameTime);
         
         base.Update(gameTime);
+        timeThisFrame.Stop();
+        tickTime = timeThisFrame.ElapsedMilliseconds;
     }
 
     protected override void Draw(GameTime gameTime)
@@ -120,6 +125,13 @@ public class Game1 : Game
             font,
             tps,
             new Vector2(GraphicsDevice.Viewport.Bounds.Width - font.MeasureString(tps).X - 10, 30),
+            Color.White
+        );
+        var tickTimeStr = String.Format($"{tickTime}/8 ms/tick");
+        spriteBatch.DrawString(
+            font,
+            tickTimeStr,
+            new Vector2(GraphicsDevice.Viewport.Bounds.Width - font.MeasureString(tickTimeStr).X - 10, 50),
             Color.White
         );
 
