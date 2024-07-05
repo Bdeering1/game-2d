@@ -18,7 +18,7 @@ public class Menu
     private LevelEditor editor;
     private bool inLevelEditor = false;
 
-    public Menu(GameServiceContainer services)
+    public Menu(GameServiceContainer services, Game1 game)
     {
         input = services.GetService<Input>();
         spriteBatch = services.GetService<SpriteBatch>();
@@ -26,7 +26,7 @@ public class Menu
         
         placeholder = Utils.CreateRect(graphics, MENU_WIDTH, MENU_HEIGHT, Color.Gold);
 
-        editor = new LevelEditor(services);
+        editor = new LevelEditor(services, game);
         button = new MenuButton(services, new Rectangle((graphics.Viewport.Bounds.Width / 2) - 100/2, (graphics.Viewport.Bounds.Height / 2) - 50/2, 100, 50), onButtonClick, "Level Editor");
     }
 

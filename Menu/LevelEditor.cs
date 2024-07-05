@@ -18,6 +18,9 @@ public class LevelEditor {
     private SpriteBatch spriteBatch { get; }
     private MapTextures mapTextures { get; }
 
+    private List<Chunk> chunks;
+    private Stage stage;
+
     private Rectangle bgRect;
     private Rectangle textureSelector;
     private int textureSize { get; }
@@ -26,12 +29,12 @@ public class LevelEditor {
     public bool exiting;
 
     private Rectangle gridEditor;
-    private List<Chunk> chunks;
     private Vector2 offset;
+    private Vector2 offsetRounded;
 
     private uint selectedTexture = 0;
 
-    public LevelEditor(GameServiceContainer services) {
+    public LevelEditor(GameServiceContainer services, Game1 game) {
         input = services.GetService<Input>();
         spriteBatch = services.GetService<SpriteBatch>();
         graphics = services.GetService<GraphicsDevice>();
@@ -52,27 +55,33 @@ public class LevelEditor {
         gridEditor = new Rectangle(Utils.ToAbsolute(bgRect, new Vector2(0.1f, 0.1f)).ToPoint(),
                                 new (Chunk.CHUNK_WIDTH * textureSize, Chunk.CHUNK_HEIGHT * textureSize));
 
-        //load in chunks from file here
-        chunks = [new Chunk(services)];
+        stage = game.stage;
+        chunks = game.stage.Chunks;
     }
     
     public void Update(GameTime gameTime) {
-        if(input.Mouse.LeftButton == ButtonState.Pressed) {
+        var leftClick = input.Mouse.LeftButton == ButtonState.Pressed;
+        var rightClick = input.Mouse.RightButton == ButtonState.Pressed;
+        if (leftClick || rightClick) 
+        {
             var mousePos = input.Mouse.Position;
             if (textureSelector.Contains(mousePos)) {
                 selectedTexture = (uint)((mousePos.Y - textureSelector.Y) / textureSize);
             }
-
-            if(gridEditor.Contains(mousePos)) {
+            if(gridEditor.Contains(mousePos)) 
+            {
                 foreach (Chunk c in chunks) {
-                    if (c.ChunkBounds.Contains(mousePos - gridEditor.Location)) {
-                        int xPos = (int)(mousePos.X - gridEditor.X - c.Offset.X) / textureSize;
-                        int yPos = (int)(mousePos.Y - gridEditor.Y - c.Offset.Y) / textureSize;
+                    //chunk bounds adjusted to reflect editor offset
+                    var adjustedChunkBounds = c.ChunkBounds with { Location = c.ChunkBounds.Location + offsetRounded.ToPoint()};
+                    if (adjustedChunkBounds.Contains(mousePos - gridEditor.Location)) 
+                    {
+                        int xPos = (mousePos.X - gridEditor.X - adjustedChunkBounds.X % adjustedChunkBounds.Width) / textureSize;
+                        int yPos = (mousePos.Y - gridEditor.Y - adjustedChunkBounds.Y % adjustedChunkBounds.Height) / textureSize;
 
                         if(c.HasTileAt(xPos, yPos)) {
                             c.RemoveTileAt(xPos, yPos);
                         }
-                        c.AddTile(selectedTexture, xPos, yPos, CollisionType.Impassable);
+                        if (leftClick) c.AddTile(selectedTexture, xPos, yPos, CollisionType.Impassable);
                     }
                 }
             }
@@ -83,18 +92,14 @@ public class LevelEditor {
             //diagonal
             if (Math.Abs(dir.X) < 1 && Math.Abs(dir.Y) < 1) 
             {
+                //just makes the vector equal to (1, 1) instead of ~(0.718, 0.718) (non-unit vector)
                 offset -= new Vector2((float)(dir.X * Math.Sqrt(2)) * 0.1f, (float)(dir.Y * Math.Sqrt(2)) * 0.1f);
             } 
             else 
             { //not diagonal
                 offset -= new Vector2(dir.X * 0.1f, dir.Y * 0.1f);
             }
-        }
-
-        foreach(Chunk c in chunks) {
-            var offsetRounded = new Vector2((int)offset.X, (int)offset.Y);
-            c.Offset = offsetRounded * textureSize;
-            c.ChunkBounds = c.ChunkBounds with {Location = c.Offset.ToPoint()};
+            offsetRounded = new Vector2((int)offset.X * textureSize, (int)offset.Y * textureSize);
         }
 
         //update editor size
@@ -111,13 +116,13 @@ public class LevelEditor {
         foreach (Chunk c in chunks) {
             foreach (Tile t in c.Tiles) {
                 var tileRect = new Rectangle(
-                                                (int)(t.X * textureSize + c.Offset.X + gridEditor.X),
-                                                (int)(t.Y * textureSize + c.Offset.Y + gridEditor.Y), 
+                                                (int)(t.X * textureSize + c.Offset.X * textureSize + offsetRounded.X + gridEditor.X),
+                                                (int)(t.Y * textureSize + c.Offset.Y * textureSize + offsetRounded.Y + gridEditor.Y),
                                                 textureSize, textureSize);
                 if (tileRect.Intersects(gridEditor))
                     spriteBatch.Draw(mapTextures.GetTexture(t.TextureID), tileRect, Color.White);
             }
-            drawRectInEditor(c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location}, gridEditor);
+            drawRectInEditor(c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location + offsetRounded.ToPoint()}, gridEditor);
         }
         spriteBatch.FillRectangle(textureSelector, Color.Blue);
         for (var i = 0; i < NUM_TEXTURES; i++) {
@@ -148,5 +153,7 @@ public class LevelEditor {
 
     public void Exit() {
         exiting = true;
+        stage.Write();
+        stage.Reload();
     }
 }

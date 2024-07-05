@@ -45,6 +45,7 @@ public class Stage
 
     public void Read()
     {
+        Chunks.Clear();
         #if DEBUG
             var path = Path.Combine(Utils.GetDebugContentDir(), STAGES_DIR, STAGE_NAME);
         #else
@@ -80,6 +81,13 @@ public class Stage
         foreach (var chunk in Chunks) {
             chunk.Write(writer); // chunk offsets should be normalized before this happens
         }
+    }
+
+    public void Reload() {
+        foreach (Chunk c in Chunks) {
+            c.GenHitboxes();
+        }
+        player.Position.Pos = spawnPos;
     }
 
     private void CheckCollisions() 
