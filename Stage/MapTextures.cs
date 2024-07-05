@@ -25,7 +25,7 @@ public class MapTextures {
     }
 
     //same as indexing textures but ensures no indexoutofbounds
-    public Texture2D GetTexture(int texture) {
+    public Texture2D GetTexture(uint texture) {
         if (texture >= 0 && texture < Textures.Length) return Textures[texture];
         else return Default;
     }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -6,15 +7,20 @@ namespace Game2D;
 
 public class Stage
 {
-    public List<Chunk> Chunks { get; } = new();
+    private const string STAGES_DIR = "stages";
+    private const string STAGE_NAME = "test.stage";
+
+    public List<Chunk> Chunks = new();
+    private Vector2 spawnPos = new();
 
     private List<IMovable> movables = new();
     private SpriteBatch spriteBatch { get; }
     private Player player { get; }
-    private Vector2 spawnPos { get; } = new Vector2(0f, 0f);
+    private GameServiceContainer services { get; }
 
     public Stage(GameServiceContainer services)
     {
+        this.services = services;
         player = new(services, spawnPos);
         spriteBatch = services.GetService<SpriteBatch>();
 
@@ -35,6 +41,45 @@ public class Stage
         }
         // spriteBatch.Draw(player.HitboxTexture, player.Position, Color.Green);
         spriteBatch.Draw(player.Animations.Sheet.img, (Rectangle)player.Drawbox, player.Animations.ClipRect, Color.White, 0f, Vector2.Zero, player.Animations.reflected ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0f);
+    }
+
+    public void Read()
+    {
+        #if DEBUG
+            var path = Path.Combine(Utils.GetDebugContentDir(), STAGES_DIR, STAGE_NAME);
+        #else
+            var path = Path.Combine(STAGES_DIR, STAGE_NAME);
+        #endif
+
+        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+        using var reader = new BinaryReader(fs);
+
+        spawnPos = new Vector2(reader.ReadSingle(), reader.ReadSingle());
+
+        while (reader.BaseStream.Position != reader.BaseStream.Length) {
+            var chunk = new Chunk(services);
+            chunk.Read(reader);
+            Chunks.Add(chunk);
+        }
+    }
+
+    public void Write()
+    {
+        #if DEBUG
+            var path = Path.Combine(Utils.GetDebugContentDir(), STAGES_DIR, STAGE_NAME);
+        #else
+            var path = Path.Combine(STAGES_DIR, STAGE_NAME);
+        #endif
+
+        using var fs = new FileStream(path, FileMode.Create);
+        using var writer = new BinaryWriter(fs);
+
+        writer.Write(spawnPos.X);
+        writer.Write(spawnPos.Y);
+        
+        foreach (var chunk in Chunks) {
+            chunk.Write(writer); // chunk offsets should be normalized before this happens
+        }
     }
 
     private void CheckCollisions() 

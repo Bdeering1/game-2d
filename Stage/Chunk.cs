@@ -1,15 +1,17 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using MonoGame.Extended;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 
 namespace Game2D;
 
 public class Chunk {
     public const int CHUNK_WIDTH = 32;
     public const int CHUNK_HEIGHT = 24;
+    public const uint CHUNK_TERM = UInt32.MaxValue;
 
     public Vector2 Offset { get; set; }
     public Rectangle ChunkBounds { get; set; }
@@ -28,15 +30,13 @@ public class Chunk {
         var config = services.GetService<ConfigurationService>();
         tileSize = (int)config.GetValue("tile", "size");
 
-        //placeholder tiles at bottom of chunk for testing
-        var placeholder = Utils.CreateRect(services.GetService<GraphicsDevice>(), tileSize, tileSize, Color.Khaki);
         for (int i = 0; i < CHUNK_WIDTH; i++) {
-            AddImpassable(placeholder, i, CHUNK_HEIGHT - 1);
+            AddTile(0, i, CHUNK_HEIGHT - 1);
         }
-        AddImpassable(placeholder, CHUNK_WIDTH / 2, CHUNK_HEIGHT - 2);
-        AddImpassable(placeholder, CHUNK_WIDTH / 2, CHUNK_HEIGHT - 3);
-        AddImpassable(placeholder, CHUNK_WIDTH - 1, CHUNK_HEIGHT - 2);
-        AddImpassable(placeholder, CHUNK_WIDTH - 1, CHUNK_HEIGHT - 3);
+        AddTile(0, CHUNK_WIDTH / 2, CHUNK_HEIGHT - 2);
+        AddTile(0, CHUNK_WIDTH / 2, CHUNK_HEIGHT - 3);
+        AddTile(0, CHUNK_WIDTH - 1, CHUNK_HEIGHT - 2);
+        AddTile(0, CHUNK_WIDTH - 1, CHUNK_HEIGHT - 3);
         ChunkBounds = new Rectangle(Offset.ToPoint(), new Point(CHUNK_WIDTH * tileSize, CHUNK_HEIGHT * tileSize));
 
         //sort tiles for hitbox generation
@@ -48,7 +48,7 @@ public class Chunk {
     {
         foreach (var tile in Tiles) {
             var tileOffset = new Vector2(tile.X * tileSize, tile.Y * tileSize);
-            spriteBatch.Draw(tile.Texture, Offset + tileOffset, Color.White);
+            spriteBatch.Draw(mapTextures.GetTexture(tile.TextureID), Offset + tileOffset, Color.White);
         }
         //draw outline of hitboxes for debugging
         foreach(var hb in CollisionBoxes) {
@@ -56,6 +56,64 @@ public class Chunk {
         }
 
         spriteBatch.DrawRectangle(new RectangleF(Offset.X, Offset.Y, CHUNK_WIDTH * tileSize, CHUNK_HEIGHT * tileSize), Color.Red, 2);
+    }
+
+    public void Read(BinaryReader reader)
+    {
+        Offset = new Vector2(reader.ReadSingle(), reader.ReadSingle());
+
+        UInt32 next;
+        while ((next = reader.ReadUInt32()) != CHUNK_TERM) {
+            var tile = new Tile();
+            tile.TextureID = next;
+            tile.X = reader.ReadInt32();
+            tile.Y = reader.ReadInt32();
+            tile.Size = new Point(reader.ReadInt32(), reader.ReadInt32());
+            tile.Collision = (CollisionType)reader.ReadByte();
+            Tiles.Add(tile);
+        }
+    }
+
+    public void Write(BinaryWriter writer)
+    {
+        writer.Write(Offset.X);
+        writer.Write(Offset.Y);
+
+        foreach (var tile in Tiles) {
+            writer.Write(tile.TextureID);
+            writer.Write(tile.X);
+            writer.Write(tile.Y);
+            writer.Write(tile.Size.X);
+            writer.Write(tile.Size.Y);
+            writer.Write((Byte)tile.Collision);
+        }
+
+        writer.Write(CHUNK_TERM);
+    }
+
+    public void AddTile(uint texture, int x, int y, CollisionType collision = CollisionType.Impassable) =>
+        Tiles.Add(new Tile(
+            texture,
+            x, y,
+            new Point(tileSize, tileSize),
+            collision,
+            null
+        ));
+
+    public bool HasTileAt(int x, int y) {
+        foreach (Tile t in Tiles) {
+            if (t.X == x && t.Y == y) return true;
+        }
+        return false;
+    }
+
+    public void RemoveTileAt(int x, int y) {
+        foreach (Tile t in Tiles) {
+            if (t.X == x && t.Y == y) {
+                Tiles.Remove(t);
+                return;
+            }
+        }
     }
 
     private List<Hitbox> GenHitboxes()
@@ -99,41 +157,6 @@ public class Chunk {
     {
         for (int i = start; i < end; i++) {
             Tiles[i] = Tiles[i] with { Hitbox = hb };
-        }
-    }
-
-    public void AddTile(int texture, int x, int y, CollisionType collisionType) {
-        Tiles.Add(new Tile(
-            mapTextures.GetTexture(texture),
-            x, y,
-            new Point(tileSize, tileSize),
-            collisionType,
-            null
-        ));
-    }
-
-    private void AddImpassable(Texture2D texture, int x, int y) =>
-        Tiles.Add(new Tile(
-            texture,
-            x, y,
-            new Point(tileSize, tileSize),
-            CollisionType.Impassable,
-            null
-        ));
-
-    public bool HasTileAt(int x, int y) {
-        foreach (Tile t in Tiles) {
-            if (t.X == x && t.Y == y) return true;
-        }
-        return false;
-    }
-
-    public void RemoveTileAt(int x, int y) {
-        foreach (Tile t in Tiles) {
-            if (t.X == x && t.Y == y) {
-                Tiles.Remove(t);
-                return;
-            }
         }
     }
 }

@@ -29,7 +29,7 @@ public class LevelEditor {
     private List<Chunk> chunks;
     private Vector2 offset;
 
-    private int selectedTexture = 0;
+    private uint selectedTexture = 0;
 
     public LevelEditor(GameServiceContainer services) {
         input = services.GetService<Input>();
@@ -60,7 +60,7 @@ public class LevelEditor {
         if(input.Mouse.LeftButton == ButtonState.Pressed) {
             var mousePos = input.Mouse.Position;
             if (textureSelector.Contains(mousePos)) {
-                selectedTexture = (mousePos.Y - textureSelector.Y) / textureSize;
+                selectedTexture = (uint)((mousePos.Y - textureSelector.Y) / textureSize);
             }
 
             if(gridEditor.Contains(mousePos)) {
@@ -115,13 +115,13 @@ public class LevelEditor {
                                                 (int)(t.Y * textureSize + c.Offset.Y + gridEditor.Y), 
                                                 textureSize, textureSize);
                 if (tileRect.Intersects(gridEditor))
-                    spriteBatch.Draw(t.Texture, tileRect, Color.White);
+                    spriteBatch.Draw(mapTextures.GetTexture(t.TextureID), tileRect, Color.White);
             }
             drawRectInEditor(c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location}, gridEditor);
         }
         spriteBatch.FillRectangle(textureSelector, Color.Blue);
-        for (int i = 0; i < NUM_TEXTURES; i++) {
-            spriteBatch.Draw(mapTextures.GetTexture(i), new Rectangle(textureSelector.X, textureSelector.Y + i * textureSize, textureSize, textureSize), Color.White);
+        for (var i = 0; i < NUM_TEXTURES; i++) {
+            spriteBatch.Draw(mapTextures.GetTexture((uint)i), new Rectangle(textureSelector.X, textureSelector.Y + i * textureSize, textureSize, textureSize), Color.White);
         }
         spriteBatch.DrawRectangle(
             new (textureSelector.X, textureSelector.Y + selectedTexture * textureSize, textureSelector.Width, textureSize),

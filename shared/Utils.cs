@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using System;
+using System.IO;
 
 namespace Game2D;
 
@@ -37,4 +38,10 @@ public class Utils
     public static Vector2 ToAbsolute(RectangleF viewport, Vector2 vec) =>
         new (vec.X * viewport.Width + viewport.X,
                     vec.Y * viewport.Height + viewport.Y);
+
+    public static string GetDebugRoot() =>
+         Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
+
+    public static string GetDebugContentDir() =>
+        Path.Combine(GetDebugRoot(), "Content");
 }

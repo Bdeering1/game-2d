@@ -20,8 +20,8 @@ public class ConfigurationService
     public ConfigurationService()
     {
         // will only work for development config
-        var parentDir = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
-        configPath = Path.Combine(parentDir, CONFIG_NAME);
+        var rootDir = Utils.GetDebugRoot();
+        configPath = Path.Combine(rootDir, CONFIG_NAME);
 
         Read();
     }
