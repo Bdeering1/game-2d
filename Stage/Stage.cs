@@ -8,7 +8,7 @@ namespace Game2D;
 public class Stage
 {
     private const string STAGES_DIR = "stages";
-    private const string STAGE_NAME = "test.stage";
+    private const string DEFAULT_STAGE_NAME = "test.stage";
 
     public List<Chunk> Chunks = new();
     private Vector2 spawnPos = new();
@@ -43,13 +43,14 @@ public class Stage
         spriteBatch.Draw(player.Animations.Sheet.img, (Rectangle)player.Drawbox, player.Animations.ClipRect, Color.White, 0f, Vector2.Zero, player.Animations.reflected ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0f);
     }
 
-    public void Read()
+    public void Read(string fileName = DEFAULT_STAGE_NAME)
     {
         Chunks.Clear();
+
         #if DEBUG
-            var path = Path.Combine(Utils.GetDebugContentDir(), STAGES_DIR, STAGE_NAME);
+            var path = Path.Combine(Utils.GetDebugContentDir(), STAGES_DIR, fileName);
         #else
-            var path = Path.Combine(STAGES_DIR, STAGE_NAME);
+            var path = Path.Combine(STAGES_DIR, fileName);
         #endif
 
         using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
@@ -67,7 +68,7 @@ public class Stage
     public void Write()
     {
         #if DEBUG
-            var path = Path.Combine(Utils.GetDebugContentDir(), STAGES_DIR, STAGE_NAME);
+            var path = Path.Combine(Utils.GetDebugContentDir(), STAGES_DIR, DEFAULT_STAGE_NAME);
         #else
             var path = Path.Combine(STAGES_DIR, STAGE_NAME);
         #endif

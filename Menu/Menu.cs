@@ -8,6 +8,8 @@ public class Menu
     private const int MENU_WIDTH = 500;
     private const int MENU_HEIGHT = 400;
 
+    private Stage stage { get; }
+
     private Input input { get; }
     private GraphicsDevice graphics { get; }
     private SpriteBatch spriteBatch { get; }
@@ -18,15 +20,17 @@ public class Menu
     private LevelEditor editor;
     private bool inLevelEditor = false;
 
-    public Menu(GameServiceContainer services, Game1 game)
+    public Menu(GameServiceContainer services, Stage stage)
     {
+        this.stage = stage;
+
         input = services.GetService<Input>();
         spriteBatch = services.GetService<SpriteBatch>();
         graphics = services.GetService<GraphicsDevice>();
         
         placeholder = Utils.CreateRect(graphics, MENU_WIDTH, MENU_HEIGHT, Color.Gold);
 
-        editor = new LevelEditor(services, game);
+        editor = new LevelEditor(services, stage);
         button = new MenuButton(services, new Rectangle((graphics.Viewport.Bounds.Width / 2) - 100/2, (graphics.Viewport.Bounds.Height / 2) - 50/2, 100, 50), onButtonClick, "Level Editor");
     }
 
@@ -59,6 +63,8 @@ public class Menu
     }
 
     public void Reset() {
+        stage.Write();
+        stage.Reload();
         inLevelEditor = false;
     }
 

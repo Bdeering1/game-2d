@@ -19,8 +19,8 @@ public class Game1 : Game
     private Input input;
     private MapTextures mapTextures;
 
+    private Stage stage;
     private Menu menu;
-    public Stage stage { get; set;}
 
     private SpriteFont font;
     private FrameCounter tickCounter;
@@ -69,7 +69,7 @@ public class Game1 : Game
 
         stage = new(Services);
         stage.Read();
-        menu = new(Services, this);
+        menu = new(Services, stage);
 
         base.Initialize();
     }

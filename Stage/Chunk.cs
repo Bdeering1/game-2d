@@ -66,6 +66,8 @@ public class Chunk {
             };
             Tiles.Add(tile);
         }
+
+        ChunkBounds = new Rectangle((Offset * tileSize).ToPoint(), new Point(CHUNK_WIDTH * tileSize, CHUNK_HEIGHT * tileSize));
         GenHitboxes();
     }
 

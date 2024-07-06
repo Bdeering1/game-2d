@@ -34,7 +34,7 @@ public class LevelEditor {
 
     private uint selectedTexture = 0;
 
-    public LevelEditor(GameServiceContainer services, Game1 game) {
+    public LevelEditor(GameServiceContainer services, Stage stage) {
         input = services.GetService<Input>();
         spriteBatch = services.GetService<SpriteBatch>();
         graphics = services.GetService<GraphicsDevice>();
@@ -55,8 +55,8 @@ public class LevelEditor {
         gridEditor = new Rectangle(Utils.ToAbsolute(bgRect, new Vector2(0.1f, 0.1f)).ToPoint(),
                                 new (Chunk.CHUNK_WIDTH * textureSize, Chunk.CHUNK_HEIGHT * textureSize));
 
-        stage = game.stage;
-        chunks = game.stage.Chunks;
+        this.stage = stage;
+        chunks = stage.Chunks;
     }
     
     public void Update(GameTime gameTime) {
