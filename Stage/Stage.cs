@@ -89,6 +89,7 @@ public class Stage
             c.GenHitboxes();
         }
         player.Position.Pos = spawnPos;
+        player.Velocity = new();
     }
 
     private void CheckCollisions() 

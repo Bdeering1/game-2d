@@ -1,14 +1,14 @@
 [player]
 mass = [60.0] # kg
-force = [400.0] # N
-jumpForce = [55_000.0] # N
+force = [450.0] # N
+jumpForce = [45_000.0] # N
 upGravity = [9.8] # tiles/s^2
 downGravity = [24.0] # tiles/s^2
 groundFriction = [0.8]
 velocityCap = [5.5] # tiles/s
 jumpDelay = [4] # ticks
-cornerMargin = [4.0]
+cornerMargin = [5.0]
 
-[tile]
-metreSize = [32]
+[tile] # not dynamically configurable
+metreSize = [40]
 size = [24]

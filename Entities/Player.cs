@@ -6,6 +6,21 @@ using System.Collections.Generic;
 
 namespace Game2D;
 
+public enum PlayerState {
+    IDLE,
+    RUNNING,
+    JUMPING,
+    FALLING
+}
+
+public enum PlayerAnimations {
+    IDLING,
+    RUNNING,
+    JUMPING,
+    FALLING,
+    LANDING,
+}
+
 public class Player: IMovable
 {
     private const int TEXTURE_SCALING = 2;
@@ -26,17 +41,17 @@ public class Player: IMovable
     public Vector2 Velocity { get; set; } = new();
 
     /* From Config */
-    public float Mass { get; set; }
-    public float Force { get; }
+    public float Mass { get; private set; }
+    public float Force { get; private set; }
     
-    private float jumpForce { get; }
-    private float upGravity { get; }
-    private float downGravity { get; }
-    private float groundFriction { get; }
-    private float velocityCap { get; }
-    private int jumpDelay { get; }
+    private float jumpForce;
+    private float upGravity;
+    private float downGravity;
+    private float groundFriction;
+    private float velocityCap;
+    private int jumpDelay;
 
-    private float cornerMargin { get; }
+    private float cornerMargin;
     
     /* Services */
     private Input input { get; }
@@ -152,7 +167,43 @@ public class Player: IMovable
         }
     }
 
-    private PlayerState GetState(float fX) {
+    public void SetProperty(string prop, object value)
+    {
+        switch (prop) {
+            case "mass":
+                Mass = (float)value;
+                break;
+            case "force":
+                Force = (float)value;
+                break;
+            case "jumpForce":
+                jumpForce = (float)value;
+                break;
+            case "upGravity":
+                upGravity = (float)value;
+                break;
+            case "downGravity":
+                downGravity = (float)value;
+                break;
+            case "velocityCap":
+                velocityCap = (float)value;
+                break;
+            case "groundFriction":
+                groundFriction = (float)value;
+                break;
+            case "jumpDelay":
+                jumpDelay = (int)value;
+                break;
+            case "cornerMargin":
+                cornerMargin = (float)value;
+                break;
+            default:
+                break;
+        }
+    }
+
+    private PlayerState GetState(float fX)
+    {
         bool xVelSignificant = Math.Abs(Velocity.X) > 5f;
         bool yVelSignificant = Math.Abs(Velocity.Y) > 5f;
         var yDir = Velocity.Y > 0;
@@ -171,7 +222,8 @@ public class Player: IMovable
         }
     }
 
-    void SetAnimation() {
+    private void SetAnimation()
+    {
         switch ((previousState, State)) {
             case (PlayerState.FALLING, PlayerState.IDLE):
                 Animations.StartTransition((int)PlayerAnimations.LANDING, (int)PlayerAnimations.IDLING);
@@ -193,19 +245,4 @@ public class Player: IMovable
                 break;
         }
     }
-}
-
-public enum PlayerState {
-    IDLE,
-    RUNNING,
-    JUMPING,
-    FALLING
-}
-
-public enum PlayerAnimations {
-    IDLING = 0,
-    RUNNING = 1,
-    JUMPING = 2,
-    FALLING = 3,
-    LANDING = 4,
 }
