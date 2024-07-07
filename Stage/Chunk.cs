@@ -42,10 +42,10 @@ public class Chunk {
             var tileOffset = new Vector2(tile.X * tileSize, tile.Y * tileSize);
             spriteBatch.Draw(mapTextures.GetTexture(tile.TextureID), Offset * tileSize + tileOffset, Color.White);
         }
-        //draw outline of hitboxes for debugging
-        foreach(var hb in CollisionBoxes) {
-            spriteBatch.DrawRectangle(new RectangleF(hb.Pos.X, hb.Pos.Y, hb.Width, hb.Height), Color.Blue, 2);
-        }
+
+        // foreach(var hb in CollisionBoxes) {
+        //     spriteBatch.DrawRectangle(new RectangleF(hb.Pos.X, hb.Pos.Y, hb.Width, hb.Height), Color.Blue, 2);
+        // }
 
         spriteBatch.DrawRectangle(ChunkBounds, Color.Red);
     }

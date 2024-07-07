@@ -29,16 +29,16 @@ public class Player: IMovable
     private const int HITBOX_WIDTH = 30;
     private const int HITBOX_HEIGHT = 65;
 
-    private Point drawSize { get; } = new Point(TEXTURE_WIDTH * TEXTURE_SCALING, TEXTURE_HEIGHT * TEXTURE_SCALING);
-    public RectangleF Drawbox => new RectangleF(Position + Animations.Offset, drawSize);
-
-    public Texture2D HitboxTexture { get; set; }
-    public Animations Animations { get; }
-    public PlayerState State { get; set; }
-    private PlayerState previousState;
-
     public Hitbox Position { get; set; } = new();
     public Vector2 Velocity { get; set; } = new();
+
+    public RectangleF Drawbox => new RectangleF(Position + animations.Offset, drawSize);
+    private Point drawSize { get; } = new Point(TEXTURE_WIDTH * TEXTURE_SCALING, TEXTURE_HEIGHT * TEXTURE_SCALING);
+
+    private Animations animations { get; }
+    private Texture2D hitboxTexture { get; }
+    private PlayerState state;
+    private PlayerState previousState;
 
     /* From Config */
     public float Mass { get; private set; }
@@ -55,8 +55,9 @@ public class Player: IMovable
     
     /* Services */
     private Input input { get; }
+    private SpriteBatch spriteBatch { get; }
 
-    /* Plyaer State */
+    /* Player state */
     private bool facingRight;
     private bool wasFacingRight;
     private bool onGround;
@@ -66,6 +67,7 @@ public class Player: IMovable
     public Player(GameServiceContainer services, Vector2 spawnPos)
     {
         input = services.GetService<Input>();
+        spriteBatch = services.GetService<SpriteBatch>();
 
         var config = services.GetService<ConfigurationService>();
         var metreSize = (int)config.GetValue("tile", "metreSize");
@@ -80,7 +82,7 @@ public class Player: IMovable
         jumpDelay = (int)config.GetValue("player", "jumpDelay");
         cornerMargin = (float)config.GetValue("player", "cornerMargin");
 
-        HitboxTexture = Utils.CreateRect(services.GetService<GraphicsDevice>(), HITBOX_WIDTH, HITBOX_HEIGHT, Color.Green); 
+        hitboxTexture = Utils.CreateRect(services.GetService<GraphicsDevice>(), HITBOX_WIDTH, HITBOX_HEIGHT, Color.Green); 
         
         List<(int fps, int startX, int startY, int numFrames)> anims = [
             (16, 0, 0, 18), // idle
@@ -89,7 +91,7 @@ public class Player: IMovable
             (16, 5, 6, 3), // falling
             (8, 0, 7, 4), //landing
         ];
-        Animations = new Animations(
+        animations = new Animations(
             services,
             "player/red-hood-sheet",
             anims,
@@ -103,7 +105,7 @@ public class Player: IMovable
 
     public void Update(GameTime gameTime)
     {
-        Animations.Update(gameTime);
+        animations.Update(gameTime);
 
         var deltaTime = (float)gameTime.ElapsedGameTime.Ticks / TimeSpan.TicksPerSecond;
 
@@ -117,8 +119,8 @@ public class Player: IMovable
         fX += direction.X * Force;
         fY = Mass * (Velocity.Y < -120.0 ? upGravity : downGravity);
 
-        previousState = State;
-        State = GetState(fX);
+        previousState = state;
+        state = GetState(fX);
         SetAnimation();
 
         if(onGround) {
@@ -142,6 +144,22 @@ public class Player: IMovable
 
         wasOnGround = onGround;
         onGround = false;
+    }
+
+    public void Draw(GameTime gameTime)
+    {
+        // spriteBatch.Draw(hitboxTexture, Position, Color.Green);
+        spriteBatch.Draw(
+            animations.Sheet.img,
+            (Rectangle)Drawbox,
+            animations.ClipRect,
+            Color.White,
+            0f,
+            Vector2.Zero,
+            animations.reflected
+                ? SpriteEffects.FlipHorizontally
+                : SpriteEffects.None,
+            0f);
     }
 
     public void Collided(Hitbox other, Hitbox intersection)
@@ -211,7 +229,7 @@ public class Player: IMovable
         if (fX != 0) facingRight = fX > 0;
         if (xVelSignificant || fX != 0) wasFacingRight = facingRight;
 
-        Animations.reflected = wasFacingRight;
+        animations.reflected = wasFacingRight;
         if (yVelSignificant) {
             if(yDir) return PlayerState.FALLING;
                 else return PlayerState.JUMPING;
@@ -224,24 +242,24 @@ public class Player: IMovable
 
     private void SetAnimation()
     {
-        switch ((previousState, State)) {
+        switch ((previousState, state)) {
             case (PlayerState.FALLING, PlayerState.IDLE):
-                Animations.StartTransition((int)PlayerAnimations.LANDING, (int)PlayerAnimations.IDLING);
+                animations.StartTransition((int)PlayerAnimations.LANDING, (int)PlayerAnimations.IDLING);
                 break;
             case (PlayerState.FALLING, PlayerState.RUNNING):
-                Animations.StartTransition((int)PlayerAnimations.LANDING, (int)PlayerAnimations.RUNNING);
+                animations.StartTransition((int)PlayerAnimations.LANDING, (int)PlayerAnimations.RUNNING);
                 break;
             case (_, PlayerState.IDLE):
-                Animations.SetAnimation((int)PlayerAnimations.IDLING);
+                animations.SetAnimation((int)PlayerAnimations.IDLING);
                 break;
             case (_, PlayerState.RUNNING):
-                Animations.SetAnimation((int)PlayerAnimations.RUNNING);
+                animations.SetAnimation((int)PlayerAnimations.RUNNING);
                 break;
             case (_, PlayerState.JUMPING):
-                Animations.StartTransition((int)PlayerAnimations.JUMPING, (int)PlayerAnimations.FALLING);
+                animations.StartTransition((int)PlayerAnimations.JUMPING, (int)PlayerAnimations.FALLING);
                 break;
             case (_, PlayerState.FALLING):
-                Animations.SetAnimation((int)PlayerAnimations.FALLING);
+                animations.SetAnimation((int)PlayerAnimations.FALLING);
                 break;
         }
     }

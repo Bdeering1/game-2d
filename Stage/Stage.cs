@@ -39,8 +39,7 @@ public class Stage
         foreach (var chunk in Chunks) {
             chunk.Draw(gameTime);
         }
-        // spriteBatch.Draw(player.HitboxTexture, player.Position, Color.Green);
-        spriteBatch.Draw(player.Animations.Sheet.img, (Rectangle)player.Drawbox, player.Animations.ClipRect, Color.White, 0f, Vector2.Zero, player.Animations.reflected ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0f);
+        player.Draw(gameTime);
     }
 
     public void Read(string fileName = DEFAULT_STAGE_NAME)
