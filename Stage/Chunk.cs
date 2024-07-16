@@ -115,6 +115,7 @@ public class Chunk {
 
     public void GenHitboxes()
     {
+        if (Tiles.Count <= 0) return;
         Tiles = [.. Tiles.OrderBy(a => a.X).ThenBy(a => a.Y)];
 
         List<Hitbox> hbs = [];

@@ -13,6 +13,10 @@ public class LevelEditor {
     private const int EDITOR_HEIGHT = 600;
     private const int NUM_TEXTURES = 10;
 
+    private const int ADD_CHUNK_BTN_W = 100;
+
+
+    private GameServiceContainer services { get; }
     private Input input { get; }
     private GraphicsDevice graphics { get; }
     private SpriteBatch spriteBatch { get; }
@@ -31,10 +35,12 @@ public class LevelEditor {
     private Rectangle gridEditor;
     private Vector2 offset;
     private Vector2 offsetRounded;
+    private List<(Rectangle, Vector2)> addChunkButtons;
 
     private uint selectedTexture = 0;
 
     public LevelEditor(GameServiceContainer services, Stage stage) {
+        this.services = services;
         input = services.GetService<Input>();
         spriteBatch = services.GetService<SpriteBatch>();
         graphics = services.GetService<GraphicsDevice>();
@@ -57,6 +63,7 @@ public class LevelEditor {
 
         this.stage = stage;
         chunks = stage.Chunks;
+        addChunkButtons = [];
     }
     
     public void Update(GameTime gameTime) {
@@ -84,6 +91,11 @@ public class LevelEditor {
                         if (leftClick) c.AddTile(selectedTexture, xPos, yPos, CollisionType.Impassable);
                     }
                 }
+                foreach ((Rectangle, Vector2) btn in addChunkButtons) {
+                    if (btn.Item1.Contains(mousePos)) {
+                        chunks.Add(new Chunk(services, btn.Item2));
+                    }
+                }
             }
         }
 
@@ -108,6 +120,9 @@ public class LevelEditor {
                                         new Vector2(textureSize, NUM_TEXTURES * textureSize).ToPoint());
         exitButton.SetPos(Utils.ToAbsolute(bgRect, new Vector2(0.02f, 0.02f)));
         exitButton.Update();
+
+        //update chunk adding buttons
+        updateAddChunkButtons();
     }
 
     public void Draw() {
@@ -124,6 +139,7 @@ public class LevelEditor {
             }
             drawRectInEditor(c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location + offsetRounded.ToPoint()}, gridEditor);
         }
+        DrawAddChunkButtons();
         spriteBatch.FillRectangle(textureSelector, Color.Blue);
         for (var i = 0; i < NUM_TEXTURES; i++) {
             spriteBatch.Draw(mapTextures.GetTexture((uint)i), new Rectangle(textureSelector.X, textureSelector.Y + i * textureSize, textureSize, textureSize), Color.White);
@@ -148,7 +164,56 @@ public class LevelEditor {
             spriteBatch.DrawLine(Math.Max(bounds.Left, editor.Left), bounds.Top, Math.Min(bounds.Right, editor.Right), bounds.Top, Color.Red);
         if (bounds.Bottom < editor.Bottom)
             spriteBatch.DrawLine(Math.Max(bounds.Left, editor.Left), bounds.Bottom, Math.Min(bounds.Right, editor.Right), bounds.Bottom, Color.Red);
+    }
 
+    private void DrawAddChunkButtons() {
+        foreach ((Rectangle, Vector2) btn in addChunkButtons) {
+            spriteBatch.FillRectangle(btn.Item1, Color.Gray);
+        }
+    }
+
+    private void updateAddChunkButtons() {
+        addChunkButtons = [];
+        foreach (Chunk c in chunks) {
+            Rectangle bounds = c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location + offsetRounded.ToPoint()};
+            (Hitbox, Vector2)[] buttons = [
+                (
+                    new Hitbox(new Vector2(bounds.Center.X - ADD_CHUNK_BTN_W/2, bounds.Top - textureSize), new Vector2(ADD_CHUNK_BTN_W, textureSize)),
+                    new Vector2(c.Offset.X, c.Offset.Y - Chunk.CHUNK_HEIGHT)
+                ),
+                (
+                    new Hitbox(new Vector2(bounds.Center.X - ADD_CHUNK_BTN_W/2, bounds.Bottom), new Vector2(ADD_CHUNK_BTN_W, textureSize)),
+                    new Vector2(c.Offset.X, c.Offset.Y + Chunk.CHUNK_HEIGHT)
+                ),
+                (
+                    new Hitbox(new Vector2(bounds.Left - textureSize, bounds.Center.Y - textureSize/2), new Vector2(textureSize, ADD_CHUNK_BTN_W)),
+                    new Vector2(c.Offset.X - Chunk.CHUNK_WIDTH, c.Offset.Y)
+                ),
+                (
+                    new Hitbox(new Vector2(bounds.Right, bounds.Center.Y - textureSize/2), new Vector2(textureSize, ADD_CHUNK_BTN_W)),
+                    new Vector2(c.Offset.X + Chunk.CHUNK_WIDTH, c.Offset.Y)
+                )
+            ];
+
+            bool intersectsChunk(Hitbox hb)
+            {
+                foreach (Chunk c in chunks)
+                {
+                    if (hb.IsInside(c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location + offsetRounded.ToPoint() }))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            foreach ((Hitbox, Vector2) btn in buttons) {
+                if(!intersectsChunk(btn.Item1) && btn.Item1.IsInside(gridEditor))
+                {
+                    addChunkButtons.Add((btn.Item1.ToRectangle(), btn.Item2));
+                }
+            }
+        }
     }
 
     public void Exit() {

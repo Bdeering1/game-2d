@@ -79,7 +79,7 @@ public class Game1 : Game
         input.Update();
         if (input.IsKeyPressed(Keys.Escape)) {
             paused = !paused;
-            menu.Reset();
+            menu.Reset(false);
         }
 
         timer += gameTime.ElapsedGameTime;

@@ -62,9 +62,12 @@ public class Menu
         }
     }
 
-    public void Reset() {
-        stage.Write();
-        stage.Reload();
+    public void Reset(bool reloadStage) {
+        if (reloadStage)
+        {
+            stage.Write();
+            stage.Reload();
+        }
         inLevelEditor = false;
     }
 
