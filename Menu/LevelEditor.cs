@@ -14,6 +14,7 @@ public class LevelEditor {
     private const int NUM_TEXTURES = 10;
 
     private const int ADD_CHUNK_BTN_W = 100;
+    private const long INTERACTION_COOLDOWN = 500;
 
 
     private GameServiceContainer services { get; }
@@ -22,8 +23,9 @@ public class LevelEditor {
     private SpriteBatch spriteBatch { get; }
     private MapTextures mapTextures { get; }
 
-    private List<Chunk> chunks;
     private Stage stage;
+    private List<Chunk> chunks;
+    private Chunk focusedChunk;
 
     private Rectangle bgRect;
     private Rectangle textureSelector;
@@ -31,6 +33,7 @@ public class LevelEditor {
 
     private MenuButton exitButton;
     public bool exiting;
+    public long timeSinceInteract;
 
     private Rectangle gridEditor;
     private Vector2 offset;
@@ -67,9 +70,11 @@ public class LevelEditor {
     }
     
     public void Update(GameTime gameTime) {
+        timeSinceInteract += gameTime.ElapsedGameTime.Milliseconds;
+
         var leftClick = input.Mouse.LeftButton == ButtonState.Pressed;
         var rightClick = input.Mouse.RightButton == ButtonState.Pressed;
-        if (leftClick || rightClick) 
+        if ((leftClick || rightClick) && timeSinceInteract > INTERACTION_COOLDOWN) 
         {
             var mousePos = input.Mouse.Position;
             if (textureSelector.Contains(mousePos)) {
@@ -94,9 +99,28 @@ public class LevelEditor {
                 foreach ((Rectangle, Vector2) btn in addChunkButtons) {
                     if (btn.Item1.Contains(mousePos)) {
                         chunks.Add(new Chunk(services, btn.Item2));
+                        timeSinceInteract = 0;
                     }
                 }
             }
+        }
+
+        Chunk mostInView = chunks[0];
+        int mostInViewOverlap = Utils.AreaOfOverlap(gridEditor, chunks[0].ChunkBounds with { Location = chunks[0].ChunkBounds.Location + offsetRounded.ToPoint() + gridEditor.Location});
+        foreach (Chunk c in chunks) {
+            int overlap = Utils.AreaOfOverlap(gridEditor, c.ChunkBounds with { Location = c.ChunkBounds.Location + offsetRounded.ToPoint() + gridEditor.Location});
+            if (overlap > mostInViewOverlap) {
+                mostInView = c;
+                mostInViewOverlap = overlap;
+            }
+        }
+        if (mostInViewOverlap > 0)
+            focusedChunk = mostInView;
+        else focusedChunk = null;
+
+        if (input.IsKeyDown(Keys.D) && timeSinceInteract > INTERACTION_COOLDOWN) {
+            timeSinceInteract = 0;
+            chunks.Remove(focusedChunk);
         }
 
         var dir = input.GetDigitalDirection();
@@ -137,7 +161,11 @@ public class LevelEditor {
                 if (tileRect.Intersects(gridEditor))
                     spriteBatch.Draw(mapTextures.GetTexture(t.TextureID), tileRect, Color.White);
             }
-            drawRectInEditor(c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location + offsetRounded.ToPoint()}, gridEditor);
+            if(c == focusedChunk) 
+            {
+                HighlightChunk(c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location + offsetRounded.ToPoint()}, gridEditor);
+            }
+            drawRectInEditor(c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location + offsetRounded.ToPoint()}, gridEditor, c == focusedChunk ? Color.Green : Color.Red);
         }
         DrawAddChunkButtons();
         spriteBatch.FillRectangle(textureSelector, Color.Blue);
@@ -149,21 +177,6 @@ public class LevelEditor {
             Color.Green
         );
         exitButton.Draw();
-    }
-
-    private void drawRectInEditor(Rectangle bounds, Rectangle editor) {
-        if (!bounds.Intersects(editor)) return;
-        //left
-        if (bounds.Left > editor.Left)
-            spriteBatch.DrawLine(bounds.X, Math.Max(bounds.Y, editor.Y), bounds.X, Math.Min(bounds.Bottom, editor.Bottom), Color.Red);
-        //right
-        if (bounds.Right < editor.Right)
-            spriteBatch.DrawLine(bounds.Right, Math.Max(bounds.Y, editor.Y), bounds.Right, Math.Min(bounds.Bottom, editor.Bottom), Color.Red);
-        //top
-        if (bounds.Top > editor.Top)
-            spriteBatch.DrawLine(Math.Max(bounds.Left, editor.Left), bounds.Top, Math.Min(bounds.Right, editor.Right), bounds.Top, Color.Red);
-        if (bounds.Bottom < editor.Bottom)
-            spriteBatch.DrawLine(Math.Max(bounds.Left, editor.Left), bounds.Bottom, Math.Min(bounds.Right, editor.Right), bounds.Bottom, Color.Red);
     }
 
     private void DrawAddChunkButtons() {
@@ -214,6 +227,29 @@ public class LevelEditor {
                 }
             }
         }
+    }
+
+    private void drawRectInEditor(Rectangle bounds, Rectangle editor, Color color) {
+        if (!bounds.Intersects(editor)) return;
+        //left
+        if (bounds.Left > editor.Left)
+            spriteBatch.DrawLine(bounds.X, Math.Max(bounds.Y, editor.Y), bounds.X, Math.Min(bounds.Bottom, editor.Bottom), color);
+        //right
+        if (bounds.Right < editor.Right)
+            spriteBatch.DrawLine(bounds.Right, Math.Max(bounds.Y, editor.Y), bounds.Right, Math.Min(bounds.Bottom, editor.Bottom), color);
+        //top
+        if (bounds.Top > editor.Top)
+            spriteBatch.DrawLine(Math.Max(bounds.Left, editor.Left), bounds.Top, Math.Min(bounds.Right, editor.Right), bounds.Top, color);
+        if (bounds.Bottom < editor.Bottom)
+            spriteBatch.DrawLine(Math.Max(bounds.Left, editor.Left), bounds.Bottom, Math.Min(bounds.Right, editor.Right), bounds.Bottom, color);
+    }
+
+    private void HighlightChunk(Rectangle chunk, Rectangle editor) {
+        spriteBatch.FillRectangle(
+            Math.Max(chunk.Left, editor.Left), Math.Max(chunk.Top, editor.Top),
+            Math.Min(chunk.Right, editor.Right) - Math.Max(chunk.Left, editor.Left),
+            Math.Min(chunk.Bottom, editor.Bottom) - Math.Max(chunk.Top, editor.Top),
+            Color.LightGreen * 0.1f);
     }
 
     public void Exit() {

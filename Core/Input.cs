@@ -18,6 +18,9 @@ public class Input
     public bool IsKeyPressed(Keys key) =>
         prevKeyboard.IsKeyDown(key) && Keyboard.IsKeyUp(key);
 
+    public bool IsKeyDown(Keys key) =>
+        Keyboard.IsKeyDown(key);
+
     public Vector2 GetDigitalDirection()
     {
         Vector2 direction = new(0,0);

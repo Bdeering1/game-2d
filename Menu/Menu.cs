@@ -73,5 +73,6 @@ public class Menu
 
     void onButtonClick() {
         inLevelEditor = true;
+        editor.timeSinceInteract = 0;
     }
 }

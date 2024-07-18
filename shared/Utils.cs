@@ -19,6 +19,16 @@ public class Utils
         return rect;
     }
 
+    public static int AreaOfOverlap(Rectangle a, Rectangle b) {
+        int x_dist = Math.Min(a.Right, b.Right) - Math.Max(a.Left, b.Left);
+        int y_dist = Math.Min(a.Bottom, b.Bottom) - Math.Max(a.Top, b.Top);
+        if (x_dist > 0 && y_dist > 0) {
+            return x_dist * y_dist;
+        } else {
+            return 0;
+        }
+    }
+
     //translates relative coordinates (i.e 0-1) to absolute coordinates (0-width/height)
     public static Rectangle ToAbsolute(Rectangle viewport, RectangleF rect) =>
         new ((int)(rect.X * viewport.Width) + viewport.Location.X,
