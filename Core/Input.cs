@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -12,14 +13,33 @@ public class Input
     public MouseState Mouse { get; private set; }
     public GamePadState Gamepad { get; private set; }
 
-    private KeyboardState prevKeyboard;
-    private GamePadState prevGamepad;
+    private List<Keys> listenKeys = new();
+    private List<Keys> downKeys = new();
 
     public bool IsKeyPressed(Keys key) =>
-        prevKeyboard.IsKeyDown(key) && Keyboard.IsKeyUp(key);
+        downKeys.Contains(key) && Keyboard.IsKeyUp(key);
 
     public bool IsKeyDown(Keys key) =>
         Keyboard.IsKeyDown(key);
+
+    public void AddListener(Keys key) =>
+        listenKeys.Add(key);
+
+    public void Update()
+    {
+        foreach (var key in listenKeys) {
+            if (Keyboard.IsKeyDown(key) && !downKeys.Contains(key)) downKeys.Add(key);
+        }
+
+        Keyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+        Mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
+        Gamepad = GamePad.GetState(PlayerIndex.One);
+    }
+
+    public void FixedUpdate()
+    {
+        downKeys.Clear();
+    }
 
     public Vector2 GetDigitalDirection()
     {
@@ -51,14 +71,5 @@ public class Input
             direction.X += Gamepad.ThumbSticks.Left.Y;
 
         return direction;
-    }
-
-    public void Update() {
-        prevKeyboard = Keyboard;
-        prevGamepad = Gamepad;
-
-        Keyboard = Microsoft.Xna.Framework.Input.Keyboard.GetState();
-        Mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
-        Gamepad = GamePad.GetState(PlayerIndex.One);
     }
 }

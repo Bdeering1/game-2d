@@ -38,7 +38,7 @@ public class LevelEditor {
     private Rectangle gridEditor;
     private Vector2 offset;
     private Vector2 offsetRounded;
-    private List<(Rectangle, Vector2)> addChunkButtons;
+    private List<(Rectangle, Vector2)> addChunkButtons = new();
 
     private uint selectedTexture = 0;
 
@@ -50,6 +50,7 @@ public class LevelEditor {
         mapTextures = services.GetService<MapTextures>();
         textureSize = (int)services.GetService<ConfigurationService>().GetValue("tile", "size");
 
+        input.AddListener(Keys.D);
         bgRect = Utils.ToAbsolute(graphics.Viewport.Bounds, new RectangleF(0.05f, 0.05f, 0.9f, 0.9f));
         textureSelector = new Rectangle(Utils.ToAbsolute(bgRect, new Vector2(0.95f, 0.05f)).ToPoint(),
                                         new Point(textureSize, NUM_TEXTURES * textureSize));
@@ -66,7 +67,6 @@ public class LevelEditor {
 
         this.stage = stage;
         chunks = stage.Chunks;
-        addChunkButtons = [];
     }
     
     public void Update(GameTime gameTime) {
@@ -118,7 +118,7 @@ public class LevelEditor {
             focusedChunk = mostInView;
         else focusedChunk = null;
 
-        if (input.IsKeyDown(Keys.D) && timeSinceInteract > INTERACTION_COOLDOWN) {
+        if (input.IsKeyPressed(Keys.D) && timeSinceInteract > INTERACTION_COOLDOWN) {
             timeSinceInteract = 0;
             chunks.Remove(focusedChunk);
         }

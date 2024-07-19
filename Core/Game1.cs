@@ -56,9 +56,7 @@ public class Game1 : Game
         spriteBatch = new(GraphicsDevice);
         tickCounter = new(FPS_SMOOTHING);
         frameCounter = new(FPS_SMOOTHING);
-        mapTextures = new MapTextures(Content, config, GraphicsDevice);
-
-        font = Content.Load<SpriteFont>("arial-12");
+        mapTextures = new(Content, config, GraphicsDevice);
 
         Services.AddService(config);
         Services.AddService(input);
@@ -66,6 +64,9 @@ public class Game1 : Game
         Services.AddService(spriteBatch);
         Services.AddService(GraphicsDevice);
         Services.AddService(Content);
+
+        input.AddListener(Keys.Escape);
+        font = Content.Load<SpriteFont>("arial-12");
 
         stage = new(Services);
         stage.Read();
@@ -76,13 +77,8 @@ public class Game1 : Game
 
     protected override void Update(GameTime gameTime)
     {
-        input.Update();
-        if (input.IsKeyPressed(Keys.Escape)) {
-            paused = !paused;
-            menu.Reset(false);
-        }
-
         timer += gameTime.ElapsedGameTime;
+        input.Update();
 
         while (timer >= updateTime)
         {
@@ -93,13 +89,20 @@ public class Game1 : Game
 
     private void FixedTimeUpdate(GameTime gameTime)
     {
+        if (input.IsKeyPressed(Keys.Escape)) {
+            paused = !paused;
+            menu.Reset(false);
+        }
+
         var timeThisFrame = Stopwatch.StartNew();
         tickCounter.Update(gameTime);
 
         if (!paused) stage.Update(gameTime);
         else menu.Update(gameTime);
         
+        input.FixedUpdate();
         base.Update(gameTime);
+
         timeThisFrame.Stop();
         tickTime = timeThisFrame.ElapsedMilliseconds;
     }
