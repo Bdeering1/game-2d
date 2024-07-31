@@ -35,9 +35,11 @@ public class Menu
     }
 
     public void Update(GameTime gameTime) {
-        if (inLevelEditor) {
+        if (inLevelEditor)
+        {
             editor.Update(gameTime);
-            if (editor.exiting) {
+            if (editor.exiting)
+            {
                 inLevelEditor = false;
                 editor.exiting = false;
             }

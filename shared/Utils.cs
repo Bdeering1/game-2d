@@ -22,9 +22,12 @@ public class Utils
     public static int AreaOfOverlap(Rectangle a, Rectangle b) {
         int x_dist = Math.Min(a.Right, b.Right) - Math.Max(a.Left, b.Left);
         int y_dist = Math.Min(a.Bottom, b.Bottom) - Math.Max(a.Top, b.Top);
-        if (x_dist > 0 && y_dist > 0) {
+        if (x_dist > 0 && y_dist > 0)
+        {
             return x_dist * y_dist;
-        } else {
+        }
+        else
+        {
             return 0;
         }
     }

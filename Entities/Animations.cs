@@ -49,7 +49,8 @@ public class Animations
 
             if (curFrame >= anim.startY * Sheet.sheetWidth + anim.startX + anim.numFrames)
             {
-                if(transitioning) {
+                if(transitioning)
+                {
                     transitioning = false;
                     curAnim = transitionTarget;
                     anim = Sheet.anims[curAnim];
@@ -79,7 +80,9 @@ public class Animations
             y = startY;
             curFrame = startY * Sheet.sheetWidth + startX;
             timeSinceFrame = 0;
-        } else {
+        } 
+        else
+        {
             var (startX, startY, _, _) = Sheet.anims[curAnim];
             curFrame = startY * Sheet.sheetWidth + startX;
         }

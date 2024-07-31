@@ -123,14 +123,16 @@ public class Player: IMovable
         state = GetState(fX);
         SetAnimation();
 
-        if(onGround) {
+        if(onGround)
+        {
             ticksSinceLanded++;
 
             if(ticksSinceLanded > jumpDelay)
                 fY += direction.Y * jumpForce;
 
             //ground friction
-            if ((fX == 0 || ((fX < 0) != (Velocity.X < 0))) && Math.Abs(Velocity.X) > 5f) {
+            if ((fX == 0 || ((fX < 0) != (Velocity.X < 0))) && Math.Abs(Velocity.X) > 5f)
+            {
                 fX += Mass * upGravity * groundFriction * (Velocity.X > 0 ? -1: 1);
             }
         }
@@ -165,20 +167,29 @@ public class Player: IMovable
     public void Collided(Hitbox other, Hitbox intersection)
     {
         //collision on top or bottom
-        if (intersection.Width + (Velocity.X != 0 ? cornerMargin : 0) > intersection.Height) {
-            if (Position.Pos.Y < other.Pos.Y) { //collision on bottom of player
+        if (intersection.Width + (Velocity.X != 0 ? cornerMargin : 0) > intersection.Height)
+        {
+            if (Position.Pos.Y < other.Pos.Y)
+            { //collision on bottom of player
                 //on ground state
                 if(!wasOnGround) ticksSinceLanded = 0;
                 onGround = true;
                 Position.Pos.Y = other.Pos.Y - Position.Height;
-            } else { //collision on top of player
+            }
+            else
+            { //collision on top of player
                 Position.Pos.Y = other.Pos.Y + other.Height;
             }
             Velocity = new Vector2(Velocity.X, Math.Min(0.0f, Velocity.Y));
-        } else { //collision on left or right sides
-            if (Position.Pos.X > other.Pos.X) { // collision on left side of player
+        }
+        else
+        { //collision on left or right sides
+            if (Position.Pos.X > other.Pos.X)
+            { // collision on left side of player
                 Position.Pos.X = other.Pos.X + other.Width;
-            } else { //collision on right side of player
+            }
+            else
+            { //collision on right side of player
                 Position.Pos.X = other.Pos.X - Position.Width;
             }
             Velocity = new Vector2(0.0f, Velocity.Y);
@@ -230,12 +241,17 @@ public class Player: IMovable
         if (xVelSignificant || fX != 0) wasFacingRight = facingRight;
 
         animations.reflected = wasFacingRight;
-        if (yVelSignificant) {
+        if (yVelSignificant)
+        {
             if(yDir) return PlayerState.FALLING;
                 else return PlayerState.JUMPING;
-        } else if (xVelSignificant) {
+        } 
+        else if (xVelSignificant)
+        {
             return PlayerState.RUNNING;
-        } else {
+        }
+        else
+        {
             return PlayerState.IDLE;
         }
     }

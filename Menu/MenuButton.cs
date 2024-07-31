@@ -45,10 +45,13 @@ public class MenuButton {
     }
 
     public void Update() {
-        if (!isClicked && input.Mouse.LeftButton == ButtonState.Pressed && ClickRect.Contains(input.Mouse.Position)) {
+        if (!isClicked && input.Mouse.LeftButton == ButtonState.Pressed && ClickRect.Contains(input.Mouse.Position))
+        {
             onClick();
             isClicked = true;
-        } else if (input.Mouse.LeftButton == ButtonState.Released || !ClickRect.Contains(input.Mouse.Position)) {
+        }
+        else if (input.Mouse.LeftButton == ButtonState.Released || !ClickRect.Contains(input.Mouse.Position))
+        {
             isClicked = false;
         }
     }

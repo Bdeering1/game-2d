@@ -89,7 +89,8 @@ public class Game1 : Game
 
     private void FixedTimeUpdate(GameTime gameTime)
     {
-        if (input.IsKeyPressed(Keys.Escape)) {
+        if (input.IsKeyPressed(Keys.Escape))
+        {
             paused = !paused;
             menu.Reset(false);
         }

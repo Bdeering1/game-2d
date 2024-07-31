@@ -106,7 +106,8 @@ public class Chunk {
 
     public void RemoveTileAt(int x, int y) {
         foreach (Tile t in Tiles) {
-            if (t.X == x && t.Y == y) {
+            if (t.X == x && t.Y == y)
+            {
                 Tiles.Remove(t);
                 return;
             }
@@ -123,15 +124,19 @@ public class Chunk {
         int hbStart = 0;
         for (int i = 1; i < Tiles.Count; i++) {
             Tile tile = Tiles[i];
-            if (tile.X == Tiles[hbStart].X) {
+            if (tile.X == Tiles[hbStart].X)
+            {
                 //the tiles are not vertically adjacent
-                if (tile.Y-1 != Tiles[i-1].Y) {
+                if (tile.Y-1 != Tiles[i-1].Y)
+                {
                     Hitbox hb = CreateHitbox(Tiles[hbStart], Tiles[i-1]);
                     hbs.Add(hb);
                     AssociateHitbox(hbStart, i-1, hb);
                     hbStart = i;
                 }
-            } else {
+            }
+            else
+            {
                 Hitbox hb = CreateHitbox(Tiles[hbStart], Tiles[i-1]);
                 hbs.Add(hb);
                 AssociateHitbox(hbStart, i-1, hb);

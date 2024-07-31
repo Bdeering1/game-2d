@@ -77,7 +77,8 @@ public class LevelEditor {
         if ((leftClick || rightClick) && timeSinceInteract > INTERACTION_COOLDOWN) 
         {
             var mousePos = input.Mouse.Position;
-            if (textureSelector.Contains(mousePos)) {
+            if (textureSelector.Contains(mousePos))
+            {
                 selectedTexture = (uint)((mousePos.Y - textureSelector.Y) / textureSize);
             }
             if(gridEditor.Contains(mousePos)) 
@@ -90,14 +91,16 @@ public class LevelEditor {
                         int xPos = (mousePos.X - gridEditor.X - adjustedChunkBounds.X % adjustedChunkBounds.Width) / textureSize;
                         int yPos = (mousePos.Y - gridEditor.Y - adjustedChunkBounds.Y % adjustedChunkBounds.Height) / textureSize;
 
-                        if(c.HasTileAt(xPos, yPos)) {
+                        if(c.HasTileAt(xPos, yPos))
+                        {
                             c.RemoveTileAt(xPos, yPos);
                         }
                         if (leftClick) c.AddTile(selectedTexture, xPos, yPos, CollisionType.Impassable);
                     }
                 }
                 foreach ((Rectangle, Vector2) btn in addChunkButtons) {
-                    if (btn.Item1.Contains(mousePos)) {
+                    if (btn.Item1.Contains(mousePos))
+                    {
                         chunks.Add(new Chunk(services, btn.Item2));
                         timeSinceInteract = 0;
                     }
@@ -109,7 +112,8 @@ public class LevelEditor {
         int mostInViewOverlap = Utils.AreaOfOverlap(gridEditor, chunks[0].ChunkBounds with { Location = chunks[0].ChunkBounds.Location + offsetRounded.ToPoint() + gridEditor.Location});
         foreach (Chunk c in chunks) {
             int overlap = Utils.AreaOfOverlap(gridEditor, c.ChunkBounds with { Location = c.ChunkBounds.Location + offsetRounded.ToPoint() + gridEditor.Location});
-            if (overlap > mostInViewOverlap) {
+            if (overlap > mostInViewOverlap)
+            {
                 mostInView = c;
                 mostInViewOverlap = overlap;
             }
@@ -118,13 +122,15 @@ public class LevelEditor {
             focusedChunk = mostInView;
         else focusedChunk = null;
 
-        if (input.IsKeyPressed(Keys.D) && timeSinceInteract > INTERACTION_COOLDOWN) {
+        if (input.IsKeyPressed(Keys.D) && timeSinceInteract > INTERACTION_COOLDOWN)
+        {
             timeSinceInteract = 0;
             chunks.Remove(focusedChunk);
         }
 
         var dir = input.GetDigitalDirection();
-        if (dir != Vector2.Zero) {
+        if (dir != Vector2.Zero)
+        {
             //diagonal
             if (Math.Abs(dir.X) < 1 && Math.Abs(dir.Y) < 1) 
             {
