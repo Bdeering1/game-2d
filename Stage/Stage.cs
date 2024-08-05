@@ -55,6 +55,12 @@ public class Stage
         using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
         using var reader = new BinaryReader(fs);
 
+        if (reader.BaseStream.Length <= 1)
+        {
+            Chunks.Add(new(services, new()));
+            return;
+        }
+
         spawnPos = new Vector2(reader.ReadSingle(), reader.ReadSingle());
 
         while (reader.BaseStream.Position != reader.BaseStream.Length) {

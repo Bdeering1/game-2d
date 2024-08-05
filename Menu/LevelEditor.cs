@@ -16,7 +16,6 @@ public class LevelEditor {
     private const int ADD_CHUNK_BTN_W = 100;
     private const long INTERACTION_COOLDOWN = 500;
 
-
     private GameServiceContainer services { get; }
     private Input input { get; }
     private GraphicsDevice graphics { get; }
@@ -85,11 +84,11 @@ public class LevelEditor {
             {
                 foreach (Chunk c in chunks) {
                     //chunk bounds adjusted to reflect editor offset
-                    var adjustedChunkBounds = c.ChunkBounds with { Location = c.ChunkBounds.Location + offsetRounded.ToPoint()};
+                    var adjustedChunkBounds = c.ChunkBounds with { Location = c.ChunkBounds.Location + offsetRounded.ToPoint() };
                     if (adjustedChunkBounds.Contains(mousePos - gridEditor.Location)) 
                     {
-                        int xPos = (mousePos.X - gridEditor.X - adjustedChunkBounds.X % adjustedChunkBounds.Width) / textureSize;
-                        int yPos = (mousePos.Y - gridEditor.Y - adjustedChunkBounds.Y % adjustedChunkBounds.Height) / textureSize;
+                        int xPos = ((mousePos.X - gridEditor.X - adjustedChunkBounds.X % adjustedChunkBounds.Width) / textureSize) * textureSize;
+                        int yPos = ((mousePos.Y - gridEditor.Y - adjustedChunkBounds.Y % adjustedChunkBounds.Height) / textureSize) * textureSize;
 
                         if(c.HasTileAt(xPos, yPos))
                         {
@@ -109,9 +108,9 @@ public class LevelEditor {
         }
 
         Chunk mostInView = chunks[0];
-        int mostInViewOverlap = Utils.AreaOfOverlap(gridEditor, chunks[0].ChunkBounds with { Location = chunks[0].ChunkBounds.Location + offsetRounded.ToPoint() + gridEditor.Location});
+        int mostInViewOverlap = Utils.AreaOfOverlap(gridEditor, chunks[0].ChunkBounds with { Location = chunks[0].ChunkBounds.Location + offsetRounded.ToPoint() + gridEditor.Location });
         foreach (Chunk c in chunks) {
-            int overlap = Utils.AreaOfOverlap(gridEditor, c.ChunkBounds with { Location = c.ChunkBounds.Location + offsetRounded.ToPoint() + gridEditor.Location});
+            int overlap = Utils.AreaOfOverlap(gridEditor, c.ChunkBounds with { Location = c.ChunkBounds.Location + offsetRounded.ToPoint() + gridEditor.Location });
             if (overlap > mostInViewOverlap)
             {
                 mostInView = c;
@@ -161,8 +160,8 @@ public class LevelEditor {
         foreach (Chunk c in chunks) {
             foreach (Tile t in c.Tiles) {
                 var tileRect = new Rectangle(
-                                                (int)(t.X * textureSize + c.Offset.X * textureSize + offsetRounded.X + gridEditor.X),
-                                                (int)(t.Y * textureSize + c.Offset.Y * textureSize + offsetRounded.Y + gridEditor.Y),
+                                                (int)(t.X + c.Offset.X + offsetRounded.X + gridEditor.X),
+                                                (int)(t.Y + c.Offset.Y + offsetRounded.Y + gridEditor.Y),
                                                 textureSize, textureSize);
                 if (tileRect.Intersects(gridEditor))
                     spriteBatch.Draw(mapTextures.GetTexture(t.TextureID), tileRect, Color.White);

@@ -13,8 +13,8 @@ public class Chunk {
     public const int CHUNK_HEIGHT = 24;
     public const uint CHUNK_TERM = UInt32.MaxValue;
 
-    public Vector2 Offset { get; set; }
-    public Rectangle ChunkBounds { get; set; }
+    public Vector2 Offset { get; private set; }
+    public Rectangle ChunkBounds { get; private set; }
     public List<Tile> Tiles { get; private set; } = new();
     public List<Hitbox> CollisionBoxes { get; private set; } = new();
 
@@ -32,15 +32,15 @@ public class Chunk {
         var config = services.GetService<ConfigurationService>();
         tileSize = (int)config.GetValue("tile", "size");
 
-        Offset = offset;
-        ChunkBounds = new Rectangle((Offset * tileSize).ToPoint(), new Point(CHUNK_WIDTH * tileSize, CHUNK_HEIGHT * tileSize));
+        Offset = offset * tileSize;
+        ChunkBounds = new Rectangle(Offset.ToPoint(), new Point(CHUNK_WIDTH * tileSize, CHUNK_HEIGHT * tileSize));
     }
 
     public void Draw(GameTime gameTime)
     {
         foreach (var tile in Tiles) {
-            var tileOffset = new Vector2(tile.X * tileSize, tile.Y * tileSize);
-            spriteBatch.Draw(mapTextures.GetTexture(tile.TextureID), Offset * tileSize + tileOffset, Color.White);
+            var tileOffset = new Vector2(tile.X, tile.Y);
+            spriteBatch.Draw(mapTextures.GetTexture(tile.TextureID), Offset + tileOffset, Color.White);
         }
 
         // foreach(var hb in CollisionBoxes) {
@@ -67,7 +67,7 @@ public class Chunk {
             Tiles.Add(tile);
         }
 
-        ChunkBounds = new Rectangle((Offset * tileSize).ToPoint(), new Point(CHUNK_WIDTH * tileSize, CHUNK_HEIGHT * tileSize));
+        ChunkBounds = new Rectangle(Offset.ToPoint(), new Point(CHUNK_WIDTH * tileSize, CHUNK_HEIGHT * tileSize));
         GenHitboxes();
     }
 
@@ -153,7 +153,7 @@ public class Chunk {
     
     private Hitbox CreateHitbox(Tile start, Tile end)
     {
-        return new Hitbox((start.X + Offset.X) * tileSize, (start.Y + Offset.Y) * tileSize, (end.X - start.X + 1) * tileSize, (end.Y - start.Y + 1) * tileSize);
+        return new Hitbox(start.X + Offset.X, start.Y + Offset.Y, end.X - start.X + 1, end.Y - start.Y + 1);
     }
 
     //Associates a hitbox with a list of tiles, 
