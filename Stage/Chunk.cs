@@ -18,6 +18,9 @@ public class Chunk {
     public List<Tile> Tiles { get; private set; } = new();
     public List<Hitbox> CollisionBoxes { get; private set; } = new();
 
+    public RectangleF Drawbox => new RectangleF(ChunkBounds.Location.ToVector2() - camera.Position, ChunkBounds.Size);
+
+    private Camera camera { get; }
     private SpriteBatch spriteBatch { get; }
     private MapTextures mapTextures { get; }
     private int tileSize { get; }
@@ -28,6 +31,7 @@ public class Chunk {
     {
         spriteBatch = services.GetService<SpriteBatch>();
         mapTextures = services.GetService<MapTextures>();
+        camera = services.GetService<Camera>();
 
         var config = services.GetService<ConfigurationService>();
         tileSize = (int)config.GetValue("tile", "size");
@@ -40,14 +44,14 @@ public class Chunk {
     {
         foreach (var tile in Tiles) {
             var tileOffset = new Vector2(tile.X, tile.Y);
-            spriteBatch.Draw(mapTextures.GetTexture(tile.TextureID), Offset + tileOffset, Color.White);
+            spriteBatch.Draw(mapTextures.GetTexture(tile.TextureID), Offset + tileOffset - camera.Position, Color.White);
         }
 
         // foreach(var hb in CollisionBoxes) {
-        //     spriteBatch.DrawRectangle(new RectangleF(hb.Pos.X, hb.Pos.Y, hb.Width, hb.Height), Color.Blue, 2);
+        //     spriteBatch.DrawRectangle(new RectangleF(hb.XY.X, hb.XY.Y, hb.Width, hb.Height), Color.Blue, 2);
         // }
 
-        spriteBatch.DrawRectangle(ChunkBounds, Color.Red);
+        spriteBatch.DrawRectangle(Drawbox, Color.Red);
     }
 
     public void Read(BinaryReader reader)

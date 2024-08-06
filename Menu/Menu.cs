@@ -65,7 +65,7 @@ public class Menu
     }
 
     public void Reset(bool reloadStage) {
-        if (reloadStage)
+        if (reloadStage || inLevelEditor)
         {
             stage.Write();
             stage.Reload();

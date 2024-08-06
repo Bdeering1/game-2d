@@ -57,6 +57,7 @@ public class Game1 : Game
         tickCounter = new(FPS_SMOOTHING);
         frameCounter = new(FPS_SMOOTHING);
         mapTextures = new(Content, config, GraphicsDevice);
+        var camera = new Camera(GraphicsDevice);
 
         Services.AddService(config);
         Services.AddService(input);
@@ -64,6 +65,7 @@ public class Game1 : Game
         Services.AddService(spriteBatch);
         Services.AddService(GraphicsDevice);
         Services.AddService(Content);
+        Services.AddService(camera);
 
         input.AddListener(Keys.Escape);
         font = Content.Load<SpriteFont>("arial-12");
@@ -131,7 +133,7 @@ public class Game1 : Game
             new Vector2(GraphicsDevice.Viewport.Bounds.Width - font.MeasureString(tps).X - 10, 30),
             Color.White
         );
-        var tickTimeStr = String.Format($"{tickTime}/8 ms/tick");
+        var tickTimeStr = String.Format($"{tickTime}/8 ms/t");
         spriteBatch.DrawString(
             font,
             tickTimeStr,

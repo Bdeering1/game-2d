@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended;
 
 namespace Game2D;
 
@@ -13,16 +14,21 @@ public class Stage
     public List<Chunk> Chunks = new();
     private Vector2 spawnPos = new();
 
-    private List<IMovable> movables = new();
+    private GameServiceContainer services { get; }
     private SpriteBatch spriteBatch { get; }
     private Player player { get; }
-    private GameServiceContainer services { get; }
+    private Camera camera { get; }
+
+    private List<IMovable> movables = new();
 
     public Stage(GameServiceContainer services)
     {
         this.services = services;
-        player = new(services, spawnPos);
         spriteBatch = services.GetService<SpriteBatch>();
+        camera = services.GetService<Camera>();
+
+        player = new(services, spawnPos);
+        camera.TrackedObject = player;
 
         Chunks.Add(new(services));
         movables.Add(player);
@@ -32,6 +38,7 @@ public class Stage
     {
         player.Update(gameTime);
         CheckCollisions();
+        camera.Update(gameTime);
     }
 
     public void Draw(GameTime gameTime)
@@ -40,6 +47,8 @@ public class Stage
             chunk.Draw(gameTime);
         }
         player.Draw(gameTime);
+
+        spriteBatch.DrawPoint(camera.Position.Center - camera.Position, Color.Blue, 5f);
     }
 
     public void Read(string fileName = DEFAULT_STAGE_NAME)
@@ -93,7 +102,7 @@ public class Stage
         foreach (Chunk c in Chunks) {
             c.GenHitboxes();
         }
-        player.Position.Pos = spawnPos;
+        player.Position.XY = spawnPos;
         player.Velocity = new();
     }
 
