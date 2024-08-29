@@ -152,7 +152,7 @@ public class Player: IMovable
 
     public void Draw(GameTime gameTime)
     {
-        // spriteBatch.Draw(hitboxTexture, Position, Color.Green);
+        spriteBatch.Draw(hitboxTexture, (Vector2)Position - camera.Position, Color.Green);
         spriteBatch.Draw(
             animations.Sheet.img,
             (Rectangle)Drawbox,
@@ -169,7 +169,7 @@ public class Player: IMovable
     public void Collided(Hitbox other, Hitbox intersection)
     {
         //collision on top or bottom
-        if (intersection.Width + (Velocity.X != 0 ? cornerMargin : 0) > intersection.Height)
+        if (intersection.Width + (Velocity.X != 0 ? cornerMargin : 0) >= intersection.Height)
         {
             if (Position.Y < other.Y)
             { //collision on bottom of player

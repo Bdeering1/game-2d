@@ -46,9 +46,9 @@ public class Hitbox(Vector2 pos, Vector2 dimensions)
         var x1 = Math.Max(X, other.X);
         var y1 = Math.Max(Y, other.Y);
         var x2 = Math.Min(X + Width, other.X + other.Width);
-        var y2 = Math.Min(Y + Dimensions.Y, other.Y + other.Height);
+        var y2 = Math.Min(Y + Height, other.Y + other.Height);
 
-        var res = new Hitbox(new Vector2(x1, y1), new Vector2(x2-x1,y2-y1));
+        var res = new Hitbox(new Vector2(x1, y1), new Vector2(x2 - x1, y2 - y1));
         if (res.Width < 0.0 || res.Height < 0.0) 
             return null;
         return res;
@@ -59,9 +59,9 @@ public class Hitbox(Vector2 pos, Vector2 dimensions)
         var x1 = Math.Max(X, other.X);
         var y1 = Math.Max(Y, other.Y);
         var x2 = Math.Min(X + Width, other.X + other.Width);
-        var y2 = Math.Min(Y + Dimensions.Y, other.Y + other.Height);
+        var y2 = Math.Min(Y + Height, other.Y + other.Height);
 
-        var res = new Hitbox(new Vector2(x1, y1), new Vector2(x2-x1,y2-y1));
+        var res = new Hitbox(new Vector2(x1, y1), new Vector2(x2 - x1, y2 - y1));
         if (res.Width < 0.0 || res.Height < 0.0) 
             return null;
         return res;

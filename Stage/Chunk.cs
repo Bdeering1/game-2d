@@ -129,9 +129,10 @@ public class Chunk {
         for (int i = 1; i < Tiles.Count; i++) {
             Tile tile = Tiles[i];
             if (tile.X == Tiles[hbStart].X)
+            // two tiles have the same X value
             {
-                //the tiles are not vertically adjacent
-                if (tile.Y-1 != Tiles[i-1].Y)
+                if (tile.Y - tileSize != Tiles[i-1].Y)
+                // he tiles are not vertically adjacent
                 {
                     Hitbox hb = CreateHitbox(Tiles[hbStart], Tiles[i-1]);
                     hbs.Add(hb);
@@ -157,7 +158,7 @@ public class Chunk {
     
     private Hitbox CreateHitbox(Tile start, Tile end)
     {
-        return new Hitbox(start.X + Offset.X, start.Y + Offset.Y, end.X - start.X + 1, end.Y - start.Y + 1);
+        return new Hitbox(start.X + Offset.X, start.Y + Offset.Y, end.X - start.X + tileSize, end.Y - start.Y + tileSize);
     }
 
     //Associates a hitbox with a list of tiles, 
