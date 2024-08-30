@@ -18,7 +18,7 @@ public class Chunk {
     public List<Tile> Tiles { get; private set; } = new();
     public List<Hitbox> CollisionBoxes { get; private set; } = new();
 
-    public RectangleF Drawbox => new RectangleF(ChunkBounds.Location.ToVector2() - camera.Position, ChunkBounds.Size);
+    public RectangleF Drawbox => new RectangleF(ChunkBounds.Location.ToVector2() - camera.Hitbox, ChunkBounds.Size);
 
     private Camera camera { get; }
     private SpriteBatch spriteBatch { get; }
@@ -44,12 +44,12 @@ public class Chunk {
     {
         foreach (var tile in Tiles) {
             var tileOffset = new Vector2(tile.X, tile.Y);
-            spriteBatch.Draw(mapTextures.GetTexture(tile.TextureID), Offset + tileOffset - camera.Position, Color.White);
+            spriteBatch.Draw(mapTextures.GetTexture(tile.TextureID), Offset + tileOffset - camera.Hitbox, Color.White);
         }
 
-        // foreach(var hb in CollisionBoxes) {
-        //     spriteBatch.DrawRectangle(new RectangleF(hb.XY.X, hb.XY.Y, hb.Width, hb.Height), Color.Blue, 2);
-        // }
+        foreach(var hb in CollisionBoxes) {
+            spriteBatch.DrawRectangle(new RectangleF(hb.X - camera.Hitbox.X, hb.Y - camera.Hitbox.Y, hb.Width, hb.Height), Color.Blue, 2);
+        }
 
         spriteBatch.DrawRectangle(Drawbox, Color.Red);
     }

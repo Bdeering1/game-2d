@@ -29,6 +29,7 @@ public class Stage
 
         player = new(services, spawnPos);
         camera.TrackedObject = player;
+        camera.Center();
 
         Chunks.Add(new(services));
         movables.Add(player);
@@ -48,7 +49,8 @@ public class Stage
         }
         player.Draw(gameTime);
 
-        spriteBatch.DrawPoint(camera.Position.Center - camera.Position, Color.Blue, 5f);
+        spriteBatch.DrawPoint(camera.Hitbox.Center - camera.Hitbox, Color.Blue, 5f);
+        spriteBatch.DrawRectangle(new RectangleF(camera.FollowBox.X - camera.Hitbox.X, camera.FollowBox.Y - camera.Hitbox.Y, camera.FollowBox.Width, camera.FollowBox.Height), Color.Blue, 2);
     }
 
     public void Read(string fileName = DEFAULT_STAGE_NAME)
@@ -102,7 +104,7 @@ public class Stage
         foreach (Chunk c in Chunks) {
             c.GenHitboxes();
         }
-        player.Position.XY = spawnPos;
+        player.Hitbox.XY = spawnPos;
         player.Velocity = new();
     }
 
@@ -111,7 +113,7 @@ public class Stage
         foreach(var chunk in Chunks) {
             foreach (var m in movables) {
                 foreach(var hb in chunk.CollisionBoxes) {
-                    Hitbox intersection = m.Position.Intersects(hb);
+                    Hitbox intersection = m.Hitbox.Intersects(hb);
                     if(intersection != null) m.Collided(hb, intersection);
                 }
             }
