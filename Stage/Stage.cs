@@ -50,7 +50,14 @@ public class Stage
         player.Draw(gameTime);
 
         spriteBatch.DrawPoint(camera.Hitbox.Center - camera.Hitbox, Color.Blue, 5f);
-        spriteBatch.DrawRectangle(new RectangleF(camera.FollowBox.X - camera.Hitbox.X, camera.FollowBox.Y - camera.Hitbox.Y, camera.FollowBox.Width, camera.FollowBox.Height), Color.Blue, 2);
+        // spriteBatch.DrawRectangle(
+        //     new RectangleF(camera.SoftFollowBox.X - camera.Hitbox.X, camera.SoftFollowBox.Y - camera.Hitbox.Y, camera.SoftFollowBox.Width, camera.SoftFollowBox.Height),
+        //     Color.Blue,
+        //     2);
+        // spriteBatch.DrawRectangle(
+        //     new RectangleF(camera.FollowBox.X - camera.Hitbox.X, camera.FollowBox.Y - camera.Hitbox.Y, camera.FollowBox.Width, camera.FollowBox.Height),
+        //     Color.Blue,
+        //     2);
     }
 
     public void Read(string fileName = DEFAULT_STAGE_NAME)
