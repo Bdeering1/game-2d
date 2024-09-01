@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 
@@ -16,7 +17,9 @@ public class Stage
 
     private GameServiceContainer services { get; }
     private SpriteBatch spriteBatch { get; }
-    private Player player { get; }
+    private List<Player> players { get; }
+    private List<InputBinding> playerBindings = new List<InputBinding> { new(Keys.Left, Keys.Right, Keys.Up, Keys.Down), new(Keys.A, Keys.D, Keys.W, Keys.S) };
+    private List<Vector2> playerSpawns = new List<Vector2> { new(), new(500, 0) };
     private Camera camera { get; }
 
     private List<IMovable> movables = new();
@@ -27,27 +30,40 @@ public class Stage
         spriteBatch = services.GetService<SpriteBatch>();
         camera = services.GetService<Camera>();
 
-        player = new(services, spawnPos);
-        camera.TrackedObject = player;
+        players = new List<Player> {
+            new(services, playerBindings[0], playerSpawns[0]),
+            new(services, playerBindings[1], playerSpawns[1])
+        };
+        camera.TrackedObject = players[0];
         camera.Center();
 
         Chunks.Add(new(services));
-        movables.Add(player);
+        foreach (var player in players)
+        {
+            movables.Add(player);
+        }
     }
 
     public void Update(GameTime gameTime)
     {
-        player.Update(gameTime);
+        foreach (var player in players)
+        {
+            player.Update(gameTime);
+        }
         CheckCollisions();
         camera.Update(gameTime);
     }
 
     public void Draw(GameTime gameTime)
     {
-        foreach (var chunk in Chunks) {
+        foreach (var chunk in Chunks)
+        {
             chunk.Draw(gameTime);
         }
-        player.Draw(gameTime);
+        foreach (var player in players)
+        {
+            player.Draw(gameTime);
+        }
 
         spriteBatch.DrawPoint(camera.Hitbox.Center - camera.Hitbox, Color.Blue, 5f);
         // spriteBatch.DrawRectangle(
@@ -108,11 +124,16 @@ public class Stage
     }
 
     public void Reload() {
-        foreach (Chunk c in Chunks) {
+        foreach (Chunk c in Chunks)
+        {
             c.GenHitboxes();
         }
-        player.Hitbox.XY = spawnPos;
-        player.Velocity = new();
+        var idx = 0;
+        foreach (var player in players)
+        {
+            player.Hitbox.XY = playerSpawns[idx++];
+            player.Velocity = new();
+        }
     }
 
     private void CheckCollisions() 

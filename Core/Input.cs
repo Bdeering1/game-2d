@@ -5,6 +5,8 @@ using Microsoft.Xna.Framework.Input;
 
 namespace Game2D;
 
+public record struct InputBinding(Keys Left, Keys Right, Keys Up, Keys Down);
+
 public class Input
 {
     private const float DEADZONE = 0.5f;
@@ -41,26 +43,27 @@ public class Input
         downKeys.Clear();
     }
 
-    public Vector2 GetDigitalDirection()
+    public Vector2 GetDigitalDirection(InputBinding binding)
     {
         Vector2 direction = new(0,0);
 
-        if (Keyboard.IsKeyDown(Keys.Left))
+        if (Keyboard.IsKeyDown(binding.Left))
             direction.X -= 1;
-        if (Keyboard.IsKeyDown(Keys.Right))
+        if (Keyboard.IsKeyDown(binding.Right))
             direction.X += 1;
-        if (Keyboard.IsKeyDown(Keys.Up))
+        if (Keyboard.IsKeyDown(binding.Up))
             direction.Y -= 1;
-        if (Keyboard.IsKeyDown(Keys.Down))
+        if (Keyboard.IsKeyDown(binding.Down))
             direction.Y += 1;
 
         return direction;
     }
 
-    public Vector2 GetAnalogDirection()
+    public Vector2 GetAnalogDirection(int playerIdx = 0)
     {
         Vector2 direction = new(0,0);
-        var capabilities = GamePad.GetCapabilities(PlayerIndex.One);
+        var playerIndex = playerIdx == 0 ? PlayerIndex.One : PlayerIndex.Two;
+        var capabilities = GamePad.GetCapabilities(playerIdx);
         if (!capabilities.IsConnected ||
             !capabilities.HasLeftXThumbStick ||
             !capabilities.HasLeftYThumbStick) return direction;

@@ -37,6 +37,7 @@ public class Player: IMovable
 
     private Animations animations { get; }
     private Texture2D hitboxTexture { get; }
+    private InputBinding bindings;
     private PlayerState state;
     private PlayerState previousState;
 
@@ -65,7 +66,7 @@ public class Player: IMovable
     private bool wasOnGround;
     private int ticksSinceLanded;
 
-    public Player(GameServiceContainer services, Vector2 spawnPos)
+    public Player(GameServiceContainer services, InputBinding bindings, Vector2 spawnPos)
     {
         input = services.GetService<Input>();
         spriteBatch = services.GetService<SpriteBatch>();
@@ -102,6 +103,7 @@ public class Player: IMovable
             new Vector2((HITBOX_WIDTH - drawSize.X) / 2, HITBOX_HEIGHT - drawSize.Y + 2)
         );
 
+        this.bindings = bindings;
         Hitbox = new Hitbox(spawnPos, new Vector2(HITBOX_WIDTH, HITBOX_HEIGHT));
     }
 
@@ -113,7 +115,7 @@ public class Player: IMovable
 
         var (fX, fY) = (0.0f, 0.0f);
 
-        var digitalDirection = input.GetDigitalDirection();
+        var digitalDirection = input.GetDigitalDirection(bindings);
         var direction = (!digitalDirection.Equals(Vector2.Zero)
                          ? digitalDirection
                          : input.GetAnalogDirection());
@@ -152,7 +154,7 @@ public class Player: IMovable
 
     public void Draw(GameTime gameTime)
     {
-        spriteBatch.Draw(hitboxTexture, (Vector2)Hitbox - camera.Hitbox, Color.Green);
+        // spriteBatch.Draw(hitboxTexture, (Vector2)Hitbox - camera.Hitbox, Color.Green);
         spriteBatch.Draw(
             animations.Sheet.img,
             (Rectangle)Drawbox,
@@ -172,13 +174,13 @@ public class Player: IMovable
         if (intersection.Width + (Velocity.X != 0 ? cornerMargin : 0) >= intersection.Height)
         {
             if (Hitbox.Y < other.Y)
-            { //collision on bottom of player
+            { //collision on bottom of players
                 if(!wasOnGround) ticksSinceLanded = 0;
                 onGround = true;
                 Hitbox.Y = other.Y - Hitbox.Height;
             }
             else
-            { //collision on top of player
+            { //collision on top of players
                 Hitbox.Y = other.Y + other.Height;
             }
             Velocity = new Vector2(Velocity.X, Math.Min(0.0f, Velocity.Y));
@@ -186,11 +188,11 @@ public class Player: IMovable
         else
         { //collision on left or right sides
             if (Hitbox.X > other.X)
-            { // collision on left side of player
+            { // collision on left side of players
                 Hitbox.X = other.X + other.Width;
             }
             else
-            { //collision on right side of player
+            { //collision on right side of players
                 Hitbox.X = other.X - Hitbox.Width;
             }
             Velocity = new Vector2(0.0f, Velocity.Y);

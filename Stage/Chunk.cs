@@ -47,9 +47,9 @@ public class Chunk {
             spriteBatch.Draw(mapTextures.GetTexture(tile.TextureID), Offset + tileOffset - camera.Hitbox, Color.White);
         }
 
-        foreach(var hb in CollisionBoxes) {
-            spriteBatch.DrawRectangle(new RectangleF(hb.X - camera.Hitbox.X, hb.Y - camera.Hitbox.Y, hb.Width, hb.Height), Color.Blue, 2);
-        }
+        // foreach(var hb in CollisionBoxes) {
+        //     spriteBatch.DrawRectangle(new RectangleF(hb.X - camera.Hitbox.X, hb.Y - camera.Hitbox.Y, hb.Width, hb.Height), Color.Blue, 2);
+        // }
 
         spriteBatch.DrawRectangle(Drawbox, Color.Red);
     }

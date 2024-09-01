@@ -25,6 +25,7 @@ public class LevelEditor {
     private Stage stage;
     private List<Chunk> chunks;
     private Chunk focusedChunk;
+    private InputBinding bindings = new(Keys.Left, Keys.Right, Keys.Up, Keys.Down);
 
     private Rectangle bgRect;
     private Rectangle textureSelector;
@@ -127,7 +128,7 @@ public class LevelEditor {
             chunks.Remove(focusedChunk);
         }
 
-        var dir = input.GetDigitalDirection();
+        var dir = input.GetDigitalDirection(bindings);
         if (dir != Vector2.Zero)
         {
             //diagonal
