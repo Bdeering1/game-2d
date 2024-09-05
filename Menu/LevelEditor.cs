@@ -83,7 +83,8 @@ public class LevelEditor {
             }
             if(gridEditor.Contains(mousePos)) 
             {
-                foreach (Chunk c in chunks) {
+                foreach (Chunk c in chunks)
+                {
                     //chunk bounds adjusted to reflect editor offset
                     var adjustedChunkBounds = c.ChunkBounds with { Location = c.ChunkBounds.Location + offsetRounded.ToPoint() };
                     if (adjustedChunkBounds.Contains(mousePos - gridEditor.Location)) 
@@ -158,12 +159,13 @@ public class LevelEditor {
     public void Draw() {
         spriteBatch.FillRectangle(bgRect, Color.DarkBlue);
         spriteBatch.FillRectangle(gridEditor, Color.DimGray);
-        foreach (Chunk c in chunks) {
-            foreach (Tile t in c.Tiles) {
-                var tileRect = new Rectangle(
-                                                (int)(t.X + c.Offset.X + offsetRounded.X + gridEditor.X),
-                                                (int)(t.Y + c.Offset.Y + offsetRounded.Y + gridEditor.Y),
-                                                textureSize, textureSize);
+        foreach (Chunk c in chunks)
+        {
+            foreach (Tile t in c.Tiles)
+            {
+                var tileRect = new Rectangle((int)(t.X + c.Offset.X + offsetRounded.X + gridEditor.X),
+                                             (int)(t.Y + c.Offset.Y + offsetRounded.Y + gridEditor.Y),
+                                             textureSize, textureSize);
                 if (tileRect.Intersects(gridEditor))
                     spriteBatch.Draw(mapTextures.GetTexture(t.TextureID), tileRect, Color.White);
             }
@@ -175,7 +177,8 @@ public class LevelEditor {
         }
         DrawAddChunkButtons();
         spriteBatch.FillRectangle(textureSelector, Color.Blue);
-        for (var i = 0; i < NUM_TEXTURES; i++) {
+        for (var i = 0; i < NUM_TEXTURES; i++)
+        {
             spriteBatch.Draw(mapTextures.GetTexture((uint)i), new Rectangle(textureSelector.X, textureSelector.Y + i * textureSize, textureSize, textureSize), Color.White);
         }
         spriteBatch.DrawRectangle(
@@ -186,7 +189,8 @@ public class LevelEditor {
     }
 
     private void DrawAddChunkButtons() {
-        foreach ((Rectangle, Vector2) btn in addChunkButtons) {
+        foreach ((Rectangle, Vector2) btn in addChunkButtons)
+                {
             spriteBatch.FillRectangle(btn.Item1, Color.Gray);
         }
     }
@@ -226,7 +230,8 @@ public class LevelEditor {
                 return false;
             }
 
-            foreach ((Hitbox, Vector2) btn in buttons) {
+            foreach ((Hitbox, Vector2) btn in buttons)
+            {
                 if(!intersectsChunk(btn.Item1) && btn.Item1.IsInside(gridEditor))
                 {
                     addChunkButtons.Add((btn.Item1.ToRectangle(), btn.Item2));

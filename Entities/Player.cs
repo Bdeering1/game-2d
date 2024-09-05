@@ -29,6 +29,9 @@ public class Player: IMovable
     private const int HITBOX_WIDTH = 30;
     private const int HITBOX_HEIGHT = 65;
 
+    private const float DOWN_GRAVITY_THRESHOLD = -120f;
+    private const float VELOCITY_RESET_THRESHOLD = 4f;
+
     public Hitbox Hitbox { get; set; } = new();
     public Vector2 Velocity { get; set; } = new();
 
@@ -121,7 +124,7 @@ public class Player: IMovable
                          : input.GetAnalogDirection());
         
         fX += direction.X * Force;
-        fY = Mass * (Velocity.Y < -120.0 ? upGravity : downGravity);
+        fY = Mass * (Velocity.Y < DOWN_GRAVITY_THRESHOLD ? upGravity : downGravity);
 
         previousState = state;
         state = GetState(fX);
@@ -174,25 +177,28 @@ public class Player: IMovable
         if (intersection.Width + (Velocity.X != 0 ? cornerMargin : 0) >= intersection.Height)
         {
             if (Hitbox.Y < other.Y)
-            { //collision on bottom of players
+            { //collision on bottom of player
                 if(!wasOnGround) ticksSinceLanded = 0;
                 onGround = true;
                 Hitbox.Y = other.Y - Hitbox.Height;
             }
             else
-            { //collision on top of players
+            { //collision on top of player
                 Hitbox.Y = other.Y + other.Height;
             }
-            Velocity = new Vector2(Velocity.X, Math.Min(0.0f, Velocity.Y));
+            if (Math.Abs(Velocity.Y) > VELOCITY_RESET_THRESHOLD)
+            {
+                Velocity = new Vector2(Velocity.X, Math.Min(0.0f, Velocity.Y));
+            }
         }
         else
         { //collision on left or right sides
             if (Hitbox.X > other.X)
-            { // collision on left side of players
+            { // collision on left side of player
                 Hitbox.X = other.X + other.Width;
             }
             else
-            { //collision on right side of players
+            { //collision on right side of player
                 Hitbox.X = other.X - Hitbox.Width;
             }
             Velocity = new Vector2(0.0f, Velocity.Y);

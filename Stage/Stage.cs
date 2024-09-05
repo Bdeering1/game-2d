@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
@@ -138,12 +139,27 @@ public class Stage
 
     private void CheckCollisions() 
     {
-        foreach(var chunk in Chunks) {
-            foreach (var m in movables) {
-                foreach(var hb in chunk.CollisionBoxes) {
+        foreach (var chunk in Chunks)
+        {
+            var idx = 1;
+            foreach (var m in movables)
+            {
+                foreach (var hb in chunk.CollisionBoxes)
+                {
                     Hitbox intersection = m.Hitbox.Intersects(hb);
                     if(intersection != null) m.Collided(hb, intersection);
                 }
+                foreach (var m2 in movables.Skip(idx))
+                {
+                    if (ReferenceEquals(m, m2)) continue;
+                    Hitbox intersection = m.Hitbox.Intersects(m2.Hitbox);
+                    if(intersection != null)
+                    {
+                        m.Collided(m2.Hitbox, intersection);
+                        m2.Collided(m.Hitbox, intersection);
+                    }
+                }
+                idx++;
             }
         }
     }
