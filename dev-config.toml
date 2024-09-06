@@ -7,6 +7,8 @@ downGravity = [24.0] # tiles/s^2
 groundFriction = [0.8]
 velocityCap = [5.5] # tiles/s
 jumpDelay = [4] # ticks
+
+[physics]
 cornerMargin = [5.0]
 
 [tile] # not dynamically configurable

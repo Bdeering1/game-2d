@@ -20,16 +20,18 @@ public class Stage
     private SpriteBatch spriteBatch { get; }
     private List<Player> players { get; }
     private List<InputBinding> playerBindings = new List<InputBinding> { new(Keys.Left, Keys.Right, Keys.Up, Keys.Down), new(Keys.A, Keys.D, Keys.W, Keys.S) };
-    private List<Vector2> playerSpawns = new List<Vector2> { new(), new(500, 0) };
+    private List<Vector2> playerSpawns = new List<Vector2> { new(), new(450, 0) };
     private Camera camera { get; }
 
     private List<IMovable> movables = new();
+    private float cornerMargin;
 
     public Stage(GameServiceContainer services)
     {
         this.services = services;
         spriteBatch = services.GetService<SpriteBatch>();
         camera = services.GetService<Camera>();
+        cornerMargin = (float)(services.GetService<ConfigurationService>()).GetValue("physics", "cornerMargin");
 
         players = new List<Player> {
             new(services, playerBindings[0], playerSpawns[0]),
@@ -147,7 +149,7 @@ public class Stage
                 foreach (var hb in chunk.CollisionBoxes)
                 {
                     Hitbox intersection = m.Hitbox.Intersects(hb);
-                    if(intersection != null) m.Collided(hb, intersection);
+                    if (intersection != null) StageCollision(m, hb, intersection);
                 }
                 foreach (var m2 in movables.Skip(idx))
                 {
@@ -155,12 +157,96 @@ public class Stage
                     Hitbox intersection = m.Hitbox.Intersects(m2.Hitbox);
                     if(intersection != null)
                     {
-                        m.Collided(m2.Hitbox, intersection);
-                        m2.Collided(m.Hitbox, intersection);
+                        PhysicsCollision(m, m2, intersection);
                     }
                 }
                 idx++;
             }
+        }
+    }
+
+    private void StageCollision(IMovable m, Hitbox hb, Hitbox intersection)
+    {
+        if (intersection.Width + (m.Velocity.X != 0 ? cornerMargin : 0) >= intersection.Height)
+        { // collision on top or bottom
+            if (m.Hitbox.Y > hb.Y)
+            {
+                m.Hitbox.Y = hb.Y + hb.Height;
+                m.Collided(CollisionDirection.Up);
+            }
+            else
+            {
+                m.Hitbox.Y = hb.Y - m.Hitbox.Height;
+                m.Collided(CollisionDirection.Down);
+            }
+            if (m.Velocity.Y > 0) m.Velocity = new Vector2(m.Velocity.X, 0.0f); // preserve upwards velocity
+        }
+        else
+        { // collision on left or right sides
+            if (m.Hitbox.X > hb.X)
+            {
+                m.Hitbox.X = hb.X + hb.Width;
+                m.Collided(CollisionDirection.Left);
+            }
+            else
+            {
+                m.Hitbox.X = hb.X - m.Hitbox.Width;
+                m.Collided(CollisionDirection.Right);
+            }
+            m.Velocity = new Vector2(0.0f, m.Velocity.Y);
+        }
+    }
+
+    private void PhysicsCollision(IMovable m1, IMovable m2, Hitbox intersection) {
+        if (intersection.Width + (m1.Velocity.X != 0 ? cornerMargin : 0) >= intersection.Height)
+        { // collision on top or bottom
+            if (m1.Hitbox.Y > m2.Hitbox.Y)
+            {
+                if (m1.Velocity.Y + m2.Velocity.Y < 0) // m1 (-) is moving faster
+                    m1.Hitbox.Y = m2.Hitbox.Y + m2.Hitbox.Height;
+                else
+                    m2.Hitbox.Y = m1.Hitbox.Y - m2.Hitbox.Height;
+
+                m1.Collided(CollisionDirection.Up);
+                m2.Collided(CollisionDirection.Down);
+            }
+            else
+            {
+                if (m1.Velocity.Y + m2.Velocity.Y >= 0) // m1 (+) is moving faster
+                    m1.Hitbox.Y = m2.Hitbox.Y - m1.Hitbox.Height;
+                else
+                    m2.Hitbox.Y = m1.Hitbox.Y + m1.Hitbox.Height;
+
+                m1.Collided(CollisionDirection.Down);
+                m2.Collided(CollisionDirection.Up);
+            }
+            m1.Velocity = new Vector2(m1.Velocity.X, 0.0f);
+            m2.Velocity = new Vector2(m2.Velocity.X, 0.0f);
+        }
+        else
+        { // collision on left or right sides
+            if (m1.Hitbox.X > m2.Hitbox.X)
+            {
+                if (m1.Velocity.X + m2.Velocity.X < 0) // m1 (-) is moving faster
+                    m1.Hitbox.X = m2.Hitbox.X + m2.Hitbox.Width;
+                else
+                    m2.Hitbox.X = m1.Hitbox.X - m2.Hitbox.Width;
+
+                m1.Collided(CollisionDirection.Left);
+                m2.Collided(CollisionDirection.Right);
+            }
+            else
+            {
+                if (m1.Velocity.X + m2.Velocity.X >= 0) // m1 (+) is moving faster
+                    m1.Hitbox.X = m2.Hitbox.X - m1.Hitbox.Width;
+                else
+                    m2.Hitbox.X = m1.Hitbox.X + m1.Hitbox.Width;
+
+                m1.Collided(CollisionDirection.Right);
+                m2.Collided(CollisionDirection.Left);
+            }
+            m1.Velocity = new Vector2(0.0f, m1.Velocity.Y);
+            m2.Velocity = new Vector2(0.0f, m2.Velocity.Y);
         }
     }
 }

@@ -128,6 +128,8 @@ public class Chunk {
         int hbStart = 0;
         for (int i = 1; i < Tiles.Count; i++) {
             Tile tile = Tiles[i];
+            if (tile.Collision == CollisionType.Passable) continue;
+
             if (tile.X == Tiles[hbStart].X)
             // two tiles have the same X value
             {

@@ -32,6 +32,7 @@ public class Player: IMovable
     private const float DOWN_GRAVITY_THRESHOLD = -120f;
     private const float VELOCITY_RESET_THRESHOLD = 4f;
 
+    public CollisionType Collision { get; set; }
     public Hitbox Hitbox { get; set; } = new();
     public Vector2 Velocity { get; set; } = new();
 
@@ -54,8 +55,6 @@ public class Player: IMovable
     private float groundFriction;
     private float velocityCap;
     private int jumpDelay;
-
-    private float cornerMargin;
     
     /* Services */
     private Input input { get; }
@@ -86,7 +85,6 @@ public class Player: IMovable
         velocityCap = (float)config.GetValue("player", "velocityCap") * metreSize;
         groundFriction = (float)config.GetValue("player", "groundFriction");
         jumpDelay = (int)config.GetValue("player", "jumpDelay");
-        cornerMargin = (float)config.GetValue("player", "cornerMargin");
 
         hitboxTexture = Utils.CreateRect(services.GetService<GraphicsDevice>(), HITBOX_WIDTH, HITBOX_HEIGHT, Color.Green); 
         
@@ -134,8 +132,7 @@ public class Player: IMovable
         {
             ticksSinceLanded++;
 
-            if(ticksSinceLanded > jumpDelay)
-                fY += direction.Y * jumpForce;
+            if(direction.Y < 0 && ticksSinceLanded > jumpDelay) fY += -jumpForce;
 
             //ground friction
             if ((fX == 0 || ((fX < 0) != (Velocity.X < 0))) && Math.Abs(Velocity.X) > 5f)
@@ -171,37 +168,12 @@ public class Player: IMovable
             0f);
     }
 
-    public void Collided(Hitbox other, Hitbox intersection)
+    public void Collided(CollisionDirection collisionDir)
     {
-        //collision on top or bottom
-        if (intersection.Width + (Velocity.X != 0 ? cornerMargin : 0) >= intersection.Height)
+        if (collisionDir == CollisionDirection.Down)
         {
-            if (Hitbox.Y < other.Y)
-            { //collision on bottom of player
-                if(!wasOnGround) ticksSinceLanded = 0;
-                onGround = true;
-                Hitbox.Y = other.Y - Hitbox.Height;
-            }
-            else
-            { //collision on top of player
-                Hitbox.Y = other.Y + other.Height;
-            }
-            if (Math.Abs(Velocity.Y) > VELOCITY_RESET_THRESHOLD)
-            {
-                Velocity = new Vector2(Velocity.X, Math.Min(0.0f, Velocity.Y));
-            }
-        }
-        else
-        { //collision on left or right sides
-            if (Hitbox.X > other.X)
-            { // collision on left side of player
-                Hitbox.X = other.X + other.Width;
-            }
-            else
-            { //collision on right side of player
-                Hitbox.X = other.X - Hitbox.Width;
-            }
-            Velocity = new Vector2(0.0f, Velocity.Y);
+            if (!wasOnGround) ticksSinceLanded = 0;
+            onGround = true;
         }
     }
 
@@ -231,9 +203,6 @@ public class Player: IMovable
                 break;
             case "jumpDelay":
                 jumpDelay = (int)value;
-                break;
-            case "cornerMargin":
-                cornerMargin = (float)value;
                 break;
             default:
                 break;
