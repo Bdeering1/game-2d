@@ -1,10 +1,11 @@
 [player]
 mass = [60.0] # kg
-force = [500.0] # N
+force = [1000.0] # N
 jumpForce = [46_000.0] # N
-upGravity = [9.8] # tiles/s^2
-downGravity = [24.0] # tiles/s^2
-groundFriction = [0.8]
+upGravity = [8.0] # tiles/s^2
+downGravity = [32.0] # tiles/s^2
+groundFriction = [3.0]
+airFriction = [0.5]
 velocityCap = [5.5] # tiles/s
 jumpDelay = [4] # ticks
 

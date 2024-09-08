@@ -53,6 +53,7 @@ public class Player: IMovable
     private float upGravity;
     private float downGravity;
     private float groundFriction;
+    private float airFriction;
     private float velocityCap;
     private int jumpDelay;
     
@@ -84,6 +85,7 @@ public class Player: IMovable
         downGravity = (float)config.GetValue("player", "downGravity") * metreSize;
         velocityCap = (float)config.GetValue("player", "velocityCap") * metreSize;
         groundFriction = (float)config.GetValue("player", "groundFriction");
+        airFriction = (float)config.GetValue("player", "airFriction");
         jumpDelay = (int)config.GetValue("player", "jumpDelay");
 
         hitboxTexture = Utils.CreateRect(services.GetService<GraphicsDevice>(), HITBOX_WIDTH, HITBOX_HEIGHT, Color.Green); 
@@ -139,13 +141,19 @@ public class Player: IMovable
             {
                 fX += Mass * upGravity * groundFriction * (Velocity.X > 0 ? -1: 1);
             }
+        } else {
+            //air friction
+            if ((fX == 0 || ((fX < 0) != (Velocity.X < 0))) && Math.Abs(Velocity.X) > 5f)
+            {
+                fX += Mass * upGravity * airFriction * (Velocity.X > 0 ? -1: 1);
+            }
         }
 
         var playerAcc = new Vector2(fX/Mass, fY/Mass);
 
         Velocity += playerAcc * deltaTime;
         Velocity = Velocity with { X = Math.Min(Math.Abs(Velocity.X), velocityCap) * (Velocity.X > 0 ? 1 : -1) };
-        if (fX == 0 && Math.Abs(Velocity.X) < 5f) Velocity = Velocity with { X = 0f };
+        if (fX == 0 && Math.Abs(Velocity.X) <= 5f) Velocity = Velocity with { X = 0f };
         Hitbox.XY += Velocity * deltaTime;
 
         wasOnGround = onGround;
