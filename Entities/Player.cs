@@ -30,7 +30,6 @@ public class Player: IMovable
     private const int HITBOX_HEIGHT = 65;
 
     private const float DOWN_GRAVITY_THRESHOLD = -120f;
-    private const float VELOCITY_RESET_THRESHOLD = 4f;
 
     public CollisionType Collision { get; set; }
     public Hitbox Hitbox { get; set; } = new();
@@ -122,6 +121,8 @@ public class Player: IMovable
         var direction = (!digitalDirection.Equals(Vector2.Zero)
                          ? digitalDirection
                          : input.GetAnalogDirection());
+
+        if (wasOnGround && Velocity.Y > 0) Velocity = Velocity with { Y = 0 }; // prevent unnecessary ground collision
         
         fX += direction.X * Force;
         fY = Mass * (Velocity.Y < DOWN_GRAVITY_THRESHOLD ? upGravity : downGravity);
@@ -130,7 +131,7 @@ public class Player: IMovable
         state = GetState(fX);
         SetAnimation();
 
-        if(onGround)
+        if (onGround)
         {
             ticksSinceLanded++;
 
@@ -229,17 +230,15 @@ public class Player: IMovable
         animations.reflected = wasFacingRight;
         if (yVelSignificant)
         {
-            if(yDir) return PlayerState.FALLING;
-                else return PlayerState.JUMPING;
+            if (yDir)
+                return PlayerState.FALLING;
+            else
+                return PlayerState.JUMPING;
         } 
-        else if (xVelSignificant)
-        {
+        else if (fX != 0 && xVelSignificant)
             return PlayerState.RUNNING;
-        }
         else
-        {
             return PlayerState.IDLE;
-        }
     }
 
     private void SetAnimation()

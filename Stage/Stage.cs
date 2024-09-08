@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,8 @@ public class Stage
 {
     private const string STAGES_DIR = "stages";
     private const string DEFAULT_STAGE_NAME = "test.stage";
+
+    private const float VELOCITY_RESET_THRESHOLD = 4f;
 
     public List<Chunk> Chunks = new();
     private Vector2 spawnPos = new();
@@ -143,24 +146,24 @@ public class Stage
     {
         foreach (var chunk in Chunks)
         {
-            var idx = 1;
+            var idx = 0;
             foreach (var m in movables)
             {
-                foreach (var hb in chunk.CollisionBoxes)
-                {
-                    Hitbox intersection = m.Hitbox.Intersects(hb);
-                    if (intersection != null) StageCollision(m, hb, intersection);
-                }
+                idx++;
                 foreach (var m2 in movables.Skip(idx))
                 {
-                    if (ReferenceEquals(m, m2)) continue;
                     Hitbox intersection = m.Hitbox.Intersects(m2.Hitbox);
                     if(intersection != null)
                     {
                         PhysicsCollision(m, m2, intersection);
                     }
                 }
-                idx++;
+
+                foreach (var hb in chunk.CollisionBoxes)
+                {
+                    Hitbox intersection = m.Hitbox.Intersects(hb);
+                    if (intersection != null) StageCollision(m, hb, intersection);
+                }
             }
         }
     }
@@ -179,7 +182,8 @@ public class Stage
                 m.Hitbox.Y = hb.Y - m.Hitbox.Height;
                 m.Collided(CollisionDirection.Down);
             }
-            if (m.Velocity.Y > 0) m.Velocity = new Vector2(m.Velocity.X, 0.0f); // preserve upwards velocity
+            // if (m.Velocity.Y > 0)
+            m.Velocity = new Vector2(m.Velocity.X, 0.0f); // preserve upwards velocity
         }
         else
         { // collision on left or right sides
@@ -220,8 +224,9 @@ public class Stage
                 m1.Collided(CollisionDirection.Down);
                 m2.Collided(CollisionDirection.Up);
             }
-            m1.Velocity = new Vector2(m1.Velocity.X, 0.0f);
-            m2.Velocity = new Vector2(m2.Velocity.X, 0.0f);
+
+            if (m1.Velocity.Y > VELOCITY_RESET_THRESHOLD) m1.Velocity = new Vector2(m1.Velocity.X, 0f);
+            if (m2.Velocity.Y > VELOCITY_RESET_THRESHOLD) m2.Velocity = new Vector2(m2.Velocity.X, 0f);
         }
         else
         { // collision on left or right sides
@@ -245,8 +250,9 @@ public class Stage
                 m1.Collided(CollisionDirection.Right);
                 m2.Collided(CollisionDirection.Left);
             }
-            m1.Velocity = new Vector2(0.0f, m1.Velocity.Y);
-            m2.Velocity = new Vector2(0.0f, m2.Velocity.Y);
+
+            m1.Velocity = new Vector2(0f, m1.Velocity.Y);
+            m2.Velocity = new Vector2(0f, m2.Velocity.Y);
         }
     }
 }
