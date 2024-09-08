@@ -51,7 +51,7 @@ public class LevelEditor {
         textureSize = (int)services.GetService<ConfigurationService>().GetValue("tile", "size");
 
         input.AddListener(Keys.D);
-        bgRect = Utils.ToAbsolute(graphics.Viewport.Bounds, new RectangleF(0.05f, 0.05f, 0.9f, 0.9f));
+        bgRect = Utils.ToAbsolute(graphics.Viewport.Bounds, new RectangleF(0.02f, 0.02f, 0.96f, 0.96f));
         textureSelector = new Rectangle(Utils.ToAbsolute(bgRect, new Vector2(0.95f, 0.05f)).ToPoint(),
                                         new Point(textureSize, NUM_TEXTURES * textureSize));
         exitButton = new MenuButton(services,
@@ -62,8 +62,7 @@ public class LevelEditor {
                                     Exit,
                                     "X"
                                 );
-        gridEditor = new Rectangle(Utils.ToAbsolute(bgRect, new Vector2(0.1f, 0.1f)).ToPoint(),
-                                new (Chunk.CHUNK_WIDTH * textureSize, Chunk.CHUNK_HEIGHT * textureSize));
+        gridEditor = Utils.ToAbsolute(bgRect, new RectangleF(0.02f, 0.02f, 0.96f, 0.96f));
 
         this.stage = stage;
         chunks = stage.Chunks;
@@ -146,7 +145,8 @@ public class LevelEditor {
         }
 
         //update editor size
-        bgRect = Utils.ToAbsolute(graphics.Viewport.Bounds, new RectangleF(0.05f, 0.05f, 0.9f, 0.9f));
+        bgRect = Utils.ToAbsolute(graphics.Viewport.Bounds, new RectangleF(0.02f, 0.02f, 0.96f, 0.96f));
+        gridEditor = Utils.ToAbsolute(bgRect, new RectangleF(0.02f, 0.02f, 0.96f, 0.96f));
         textureSelector = new Rectangle(Utils.ToAbsolute(bgRect, new Vector2(0.95f, 0.05f)).ToPoint(),
                                         new Vector2(textureSize, NUM_TEXTURES * textureSize).ToPoint());
         exitButton.SetPos(Utils.ToAbsolute(bgRect, new Vector2(0.02f, 0.02f)));
@@ -199,22 +199,23 @@ public class LevelEditor {
         addChunkButtons = [];
         foreach (Chunk c in chunks) {
             Rectangle bounds = c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location + offsetRounded.ToPoint()};
+            Vector2 offsetAdj = c.Offset / textureSize;
             (Hitbox, Vector2)[] buttons = [
                 (
                     new Hitbox(new Vector2(bounds.Center.X - ADD_CHUNK_BTN_W/2, bounds.Top - textureSize), new Vector2(ADD_CHUNK_BTN_W, textureSize)),
-                    new Vector2(c.Offset.X, c.Offset.Y - Chunk.CHUNK_HEIGHT)
+                    new Vector2(offsetAdj.X, offsetAdj.Y - Chunk.CHUNK_HEIGHT)
                 ),
                 (
                     new Hitbox(new Vector2(bounds.Center.X - ADD_CHUNK_BTN_W/2, bounds.Bottom), new Vector2(ADD_CHUNK_BTN_W, textureSize)),
-                    new Vector2(c.Offset.X, c.Offset.Y + Chunk.CHUNK_HEIGHT)
+                    new Vector2(offsetAdj.X, offsetAdj.Y + Chunk.CHUNK_HEIGHT)
                 ),
                 (
                     new Hitbox(new Vector2(bounds.Left - textureSize, bounds.Center.Y - textureSize/2), new Vector2(textureSize, ADD_CHUNK_BTN_W)),
-                    new Vector2(c.Offset.X - Chunk.CHUNK_WIDTH, c.Offset.Y)
+                    new Vector2(offsetAdj.X - Chunk.CHUNK_WIDTH, offsetAdj.Y)
                 ),
                 (
                     new Hitbox(new Vector2(bounds.Right, bounds.Center.Y - textureSize/2), new Vector2(textureSize, ADD_CHUNK_BTN_W)),
-                    new Vector2(c.Offset.X + Chunk.CHUNK_WIDTH, c.Offset.Y)
+                    new Vector2(offsetAdj.X + Chunk.CHUNK_WIDTH, offsetAdj.Y)
                 )
             ];
 
@@ -265,6 +266,18 @@ public class LevelEditor {
 
     public void Exit() {
         exiting = true;
+
+        //purge empty chunks
+        List<Chunk> cToRemove = [];
+        for (int i = 0; i < chunks.Count; i++) {
+            if (chunks[i].Tiles.Count == 0) {
+                cToRemove.Add(chunks[i]);
+            }
+        }
+        foreach (Chunk c in cToRemove) {
+            chunks.Remove(c);
+        }
+
         stage.Write();
         stage.Reload();
     }
