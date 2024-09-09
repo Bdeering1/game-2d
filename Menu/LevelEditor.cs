@@ -80,34 +80,10 @@ public class LevelEditor {
             {
                 selectedTexture = (uint)((mousePos.Y - textureSelector.Y) / textureSize);
             }
-            if(gridEditor.Contains(mousePos)) 
-            {
-                foreach (Chunk c in chunks)
-                {
-                    //chunk bounds adjusted to reflect editor offset
-                    var adjustedChunkBounds = c.ChunkBounds with { Location = c.ChunkBounds.Location + offsetRounded.ToPoint() };
-                    if (adjustedChunkBounds.Contains(mousePos - gridEditor.Location)) 
-                    {
-                        int xPos = ((mousePos.X - gridEditor.X - adjustedChunkBounds.X % adjustedChunkBounds.Width) / textureSize) * textureSize;
-                        int yPos = ((mousePos.Y - gridEditor.Y - adjustedChunkBounds.Y % adjustedChunkBounds.Height) / textureSize) * textureSize;
-
-                        if(c.HasTileAt(xPos, yPos))
-                        {
-                            c.RemoveTileAt(xPos, yPos);
-                        }
-                        if (leftClick) c.AddTile(selectedTexture, xPos, yPos, CollisionType.Impassable);
-                    }
-                }
-                foreach ((Rectangle, Vector2) btn in addChunkButtons) {
-                    if (btn.Item1.Contains(mousePos))
-                    {
-                        chunks.Add(new Chunk(services, btn.Item2));
-                        timeSinceInteract = 0;
-                    }
-                }
-            }
+            addTiles(mousePos, leftClick);
         }
 
+        //chunk focusing
         Chunk mostInView = chunks[0];
         int mostInViewOverlap = Utils.AreaOfOverlap(gridEditor, chunks[0].ChunkBounds with { Location = chunks[0].ChunkBounds.Location + offsetRounded.ToPoint() + gridEditor.Location });
         foreach (Chunk c in chunks) {
@@ -121,13 +97,16 @@ public class LevelEditor {
         if (mostInViewOverlap > 0)
             focusedChunk = mostInView;
         else focusedChunk = null;
+        //end chunk focusing
 
+        //chunk deletion
         if (input.IsKeyPressed(Keys.D) && timeSinceInteract > INTERACTION_COOLDOWN)
         {
             timeSinceInteract = 0;
             chunks.Remove(focusedChunk);
         }
 
+        //editor movement (i.e arrow key input)
         var dir = input.GetDigitalDirection(bindings);
         if (dir != Vector2.Zero)
         {
@@ -143,6 +122,7 @@ public class LevelEditor {
             }
             offsetRounded = new Vector2((int)offset.X * textureSize, (int)offset.Y * textureSize);
         }
+        //end editor movement
 
         //update editor size
         bgRect = Utils.ToAbsolute(graphics.Viewport.Bounds, new RectangleF(0.02f, 0.02f, 0.96f, 0.96f));
@@ -186,6 +166,35 @@ public class LevelEditor {
             Color.Green
         );
         exitButton.Draw();
+    }
+
+    private void addTiles(Point mousePos, bool leftClick) {
+        if(gridEditor.Contains(mousePos)) 
+            {
+                foreach (Chunk c in chunks)
+                {
+                    //chunk bounds adjusted to reflect editor offset
+                    var adjustedChunkBounds = c.ChunkBounds with { Location = c.ChunkBounds.Location + offsetRounded.ToPoint() };
+                    if (adjustedChunkBounds.Contains(mousePos - gridEditor.Location)) 
+                    {
+                        int xPos = (mousePos.X - gridEditor.X - adjustedChunkBounds.X % adjustedChunkBounds.Width) / textureSize * textureSize;
+                        int yPos = (mousePos.Y - gridEditor.Y - adjustedChunkBounds.Y % adjustedChunkBounds.Height) / textureSize * textureSize;
+
+                        if(c.HasTileAt(xPos, yPos))
+                        {
+                            c.RemoveTileAt(xPos, yPos);
+                        }
+                        if (leftClick) c.AddTile(selectedTexture, xPos, yPos, CollisionType.Impassable);
+                    }
+                }
+                foreach ((Rectangle, Vector2) btn in addChunkButtons) {
+                    if (btn.Item1.Contains(mousePos))
+                    {
+                        chunks.Add(new Chunk(services, btn.Item2));
+                        timeSinceInteract = 0;
+                    }
+                }
+            }
     }
 
     private void DrawAddChunkButtons() {
