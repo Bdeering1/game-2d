@@ -40,7 +40,8 @@ public class Stage
             new(services, playerBindings[0], playerSpawns[0]),
             new(services, playerBindings[1], playerSpawns[1])
         };
-        camera.TrackedObject = players[0];
+		camera.TrackedObjects = new List<IMovable>(){players[0], players[1]};
+		camera.TrackedObjectsSize = new Vector2(players[0].Hitbox.Width, players[0].Hitbox.Height);
         camera.Center();
 
         Chunks.Add(new(services));
