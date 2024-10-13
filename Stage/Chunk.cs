@@ -18,7 +18,7 @@ public class Chunk {
     public List<Tile> Tiles { get; private set; } = new();
     public List<Hitbox> CollisionBoxes { get; private set; } = new();
 
-    public RectangleF Drawbox => new RectangleF(ChunkBounds.Location.ToVector2() - camera.Hitbox, ChunkBounds.Size);
+    public RectangleF Drawbox => new RectangleF(ChunkBounds.Location.ToVector2(), ChunkBounds.Size);
 
     private Camera camera { get; }
     private SpriteBatch spriteBatch { get; }
@@ -44,14 +44,23 @@ public class Chunk {
     {
         foreach (var tile in Tiles) {
             var tileOffset = new Vector2(tile.X, tile.Y);
-            spriteBatch.Draw(mapTextures.GetTexture(tile.TextureID), Offset + tileOffset - camera.Hitbox, Color.White);
+            spriteBatch.Draw(
+					mapTextures.GetTexture(tile.TextureID),
+					camera.WorldToScreen(Offset + tileOffset),
+					null,
+					Color.White,
+					0.0f,
+					Vector2.Zero,
+					camera.viewScale,
+					SpriteEffects.None,
+					0.0f);
         }
 
         // foreach(var hb in CollisionBoxes) {
         //     spriteBatch.DrawRectangle(new RectangleF(hb.X - camera.Hitbox.X, hb.Y - camera.Hitbox.Y, hb.Width, hb.Height), Color.Blue, 2);
         // }
 
-        spriteBatch.DrawRectangle(Drawbox, Color.Red);
+        spriteBatch.DrawRectangle(camera.WorldToScreen(Drawbox), Color.Red);
     }
 
     public void Read(BinaryReader reader)

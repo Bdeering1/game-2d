@@ -2,6 +2,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.Linq;
+using MonoGame.Extended;
+using System;
 
 namespace Game2D;
 
@@ -15,6 +17,9 @@ public class Camera
     public Hitbox SoftFollowBox { get; set; }
     public List<IMovable> TrackedObjects { get; set; }
 	public Vector2 TrackedObjectsSize { get; set; }
+
+	public float viewScale { get; set; }
+	public Vector2 viewScaleOffset { get; set; }
 
     private GraphicsDevice graphics { get; }
 
@@ -35,10 +40,26 @@ public class Camera
             new(SOFT_FOLLOW_WIDTH, SOFT_FOLLOW_HEIGHT)
         );
         Hitbox.Center = FollowBox.Center;
+
+		viewScale = 1f;
+		viewScaleOffset = new((1200-Hitbox.Width * viewScale)/2, (900 - Hitbox.Height * viewScale)/2);
     }
 
     public void Update(GameTime gameTime)
     {
+		foreach(IMovable obj in TrackedObjects) 
+		{
+			var screenCoords = WorldToScreen(obj.Hitbox.Center);
+			if (screenCoords.X <= 75 || screenCoords.Y <= 75 || screenCoords.X > 1125 || screenCoords.Y > 825)
+			{
+				var diff = Math.Abs(Math.Min(Math.Min(screenCoords.X - 75, 1125 - screenCoords.X), Math.Min(screenCoords.Y - 75, 825 - screenCoords.Y)));
+				if (viewScale >= 0.4) {
+					viewScale -= 0.00002f * diff;
+					viewScaleOffset = new((1200-Hitbox.Width * viewScale)/2, (900 - Hitbox.Height * viewScale)/2);
+				}
+			}
+		}
+		
 		Vector2 avgPos = new(TrackedObjects.Average(obj => obj.Hitbox.XY.X), TrackedObjects.Average(obj => obj.Hitbox.XY.Y));
 
         var hardFollow = false;
@@ -99,6 +120,15 @@ public class Camera
             Hitbox.Center = SoftFollowBox.Center;
         }
     }
+
+	public Vector2 WorldToScreen(Vector2 pos) =>
+		(pos - Hitbox) * viewScale + viewScaleOffset;
+	
+	public RectangleF WorldToScreen(RectangleF rect) =>
+		new RectangleF(((Vector2)rect.Position - Hitbox) * viewScale + viewScaleOffset, rect.Size * viewScale);
+	public Hitbox WorldToScreen(Hitbox hb) =>
+		new Hitbox(((Vector2)hb.XY - Hitbox) * viewScale + viewScaleOffset, hb.Dimensions * viewScale);
+
 
     public void Center()
     {

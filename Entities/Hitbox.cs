@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Xna.Framework;
+using MonoGame.Extended;
 
 namespace Game2D;
 
@@ -74,6 +75,10 @@ public class Hitbox(Vector2 pos, Vector2 dimensions)
     public Rectangle ToRectangle() {
         return new Rectangle(XY.ToPoint(), Dimensions.ToPoint());
     }
+
+	public RectangleF ToRectangleF() {
+		return new RectangleF(XY.ToPoint(), Dimensions.ToPoint());
+	}
 
     //allows direct casting of this hitbox to a position,
     //because that is this structs primary use
