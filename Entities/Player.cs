@@ -166,7 +166,7 @@ public class Player: IMovable
         // spriteBatch.Draw(hitboxTexture, (Vector2)Hitbox - camera.Hitbox, Color.Green);
         spriteBatch.Draw(
             animations.Sheet.img,
-            (Rectangle)camera.WorldToScreen(Drawbox),
+            (Rectangle)camera.GetScreenCoords(Drawbox),
             animations.ClipRect,
             Color.White,
             0f,

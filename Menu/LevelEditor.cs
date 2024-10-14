@@ -244,7 +244,7 @@ public class LevelEditor {
             {
                 if(!intersectsChunk(btn.Item1) && btn.Item1.IsInside(gridEditor))
                 {
-                    addChunkButtons.Add((btn.Item1.ToRectangle(), btn.Item2));
+                    addChunkButtons.Add(((Rectangle)btn.Item1, btn.Item2));
                 }
             }
         }
