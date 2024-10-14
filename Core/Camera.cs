@@ -122,13 +122,13 @@ public class Camera
     }
 
     public Vector2 GetScreenCoords(Vector2 pos) =>
-        (pos - Hitbox) * viewScale + viewScaleOffset;
+        (pos - (Vector2)Hitbox) * viewScale + viewScaleOffset;
 
     public RectangleF GetScreenCoords(RectangleF rect) =>
-        new RectangleF(((Vector2)rect.Position - Hitbox) * viewScale + viewScaleOffset, rect.Size * viewScale);
+        new RectangleF(((Vector2)rect.Position - (Vector2)Hitbox) * viewScale + viewScaleOffset, rect.Size * viewScale);
 
     public Hitbox GetScreenCoords(Hitbox hb) =>
-        new Hitbox(((Vector2)hb.XY - Hitbox) * viewScale + viewScaleOffset, hb.Dimensions * viewScale);
+        new Hitbox(((Vector2)hb.XY - (Vector2)Hitbox) * viewScale + viewScaleOffset, hb.Dimensions * viewScale);
 
 
     public void Center()

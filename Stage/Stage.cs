@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -72,7 +71,7 @@ public class Stage
             player.Draw(gameTime);
         }
 
-        spriteBatch.DrawPoint(camera.Hitbox.Center - camera.Hitbox, Color.Blue, 5f);
+        spriteBatch.DrawPoint(camera.Hitbox.Center - (Vector2)camera.Hitbox, Color.Blue, 5f);
         // spriteBatch.DrawRectangle(
         //     new RectangleF(camera.SoftFollowBox.X - camera.Hitbox.X, camera.SoftFollowBox.Y - camera.Hitbox.Y, camera.SoftFollowBox.Width, camera.SoftFollowBox.Height),
         //     Color.Blue,

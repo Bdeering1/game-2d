@@ -72,13 +72,13 @@ public class Hitbox(Vector2 pos, Vector2 dimensions)
         return rect.Contains(XY) && rect.Contains(XY + Dimensions - Vector2.One);
     }
 
-    public static implicit operator Rectangle(Hitbox h) =>
+    public static explicit operator Rectangle(Hitbox h) =>
         new Rectangle(h.XY.ToPoint(), h.Dimensions.ToPoint());
 
-    public static implicit operator RectangleF(Hitbox h) =>
+    public static explicit operator RectangleF(Hitbox h) =>
         new RectangleF(h.XY.ToPoint(), h.Dimensions.ToPoint());
 
     // allows direct casting of this hitbox to a position,
     // because that is this structs primary use
-    public static implicit operator Vector2(Hitbox h) => h.XY;
+    public static explicit operator Vector2(Hitbox h) => h.XY;
 }
