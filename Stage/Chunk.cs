@@ -45,22 +45,22 @@ public class Chunk {
         foreach (var tile in Tiles) {
             var tileOffset = new Vector2(tile.X, tile.Y);
             spriteBatch.Draw(
-            mapTextures.GetTexture(tile.TextureID),
-            camera.GetScreenCoords(Offset + tileOffset),
-            null,
-            Color.White,
-            0.0f,
-            Vector2.Zero,
-            camera.viewScale,
-            SpriteEffects.None,
-            0.0f);
+                mapTextures.GetTexture(tile.TextureID),
+                camera.GetScreenCoords(Offset + tileOffset),
+                null,
+                Color.White,
+                0.0f,
+                Vector2.Zero,
+                camera.ViewScale,
+                SpriteEffects.None,
+                0.0f);
         }
 
         // foreach(var hb in CollisionBoxes) {
         //     spriteBatch.DrawRectangle(new RectangleF(hb.X - camera.Hitbox.X, hb.Y - camera.Hitbox.Y, hb.Width, hb.Height), Color.Blue, 2);
         // }
 
-        spriteBatch.DrawRectangle(camera.GetScreenCoords(Drawbox), Color.Red);
+        // spriteBatch.DrawRectangle(camera.GetScreenCoords(Drawbox), Color.Red);
     }
 
     public void Read(BinaryReader reader)

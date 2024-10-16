@@ -37,6 +37,8 @@ public class Hitbox(Vector2 pos, Vector2 dimensions)
             Y = value.Y - Height / 2;
         }
     }
+    public float CenterX => X + Width / 2;
+    public float CenterY => Y + Height / 2;
 
     public Hitbox(): this(new Vector2(0.0f, 0.0f), new Vector2(0.0f, 0.0f)) {}
     public Hitbox(float x, float y, float width, float height): this(new Vector2(x, y), new Vector2(width, height)) {}
@@ -76,9 +78,7 @@ public class Hitbox(Vector2 pos, Vector2 dimensions)
         new Rectangle(h.XY.ToPoint(), h.Dimensions.ToPoint());
 
     public static explicit operator RectangleF(Hitbox h) =>
-        new RectangleF(h.XY.ToPoint(), h.Dimensions.ToPoint());
+        new RectangleF(h.XY, h.Dimensions.ToPoint());
 
-    // allows direct casting of this hitbox to a position,
-    // because that is this structs primary use
     public static explicit operator Vector2(Hitbox h) => h.XY;
 }

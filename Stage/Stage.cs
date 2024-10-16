@@ -40,8 +40,7 @@ public class Stage
             new(services, playerBindings[0], playerSpawns[0]),
             new(services, playerBindings[1], playerSpawns[1])
         };
-		camera.TrackedObjects = new List<IMovable>(){players[0], players[1]};
-		camera.TrackedObjectsSize = new Vector2(players[0].Hitbox.Width, players[0].Hitbox.Height);
+	camera.TrackedObjects = new List<IMovable>(){ players[0], players[1] };
         camera.Center();
 
         Chunks.Add(new(services));
@@ -72,15 +71,22 @@ public class Stage
             player.Draw(gameTime);
         }
 
-        spriteBatch.DrawPoint(camera.Hitbox.Center - (Vector2)camera.Hitbox, Color.Blue, 5f);
-        // spriteBatch.DrawRectangle(
-        //     new RectangleF(camera.SoftFollowBox.X - camera.Hitbox.X, camera.SoftFollowBox.Y - camera.Hitbox.Y, camera.SoftFollowBox.Width, camera.SoftFollowBox.Height),
-        //     Color.Blue,
-        //     2);
-        // spriteBatch.DrawRectangle(
-        //     new RectangleF(camera.FollowBox.X - camera.Hitbox.X, camera.FollowBox.Y - camera.Hitbox.Y, camera.FollowBox.Width, camera.FollowBox.Height),
-        //     Color.Blue,
-        //     2);
+        // spriteBatch.DrawPoint(camera.Hitbox.Center - (Vector2)camera.Hitbox, Color.Blue, 5f);
+        spriteBatch.DrawPoint(camera.TrackedPosition, Color.Blue, 5f);
+        spriteBatch.DrawRectangle(
+            new RectangleF(
+                camera.GetScreenCoords(new Vector2(camera.SoftFollowBox.X, camera.SoftFollowBox.Y)),
+                new SizeF(camera.SoftFollowBox.Width, camera.SoftFollowBox.Height) * camera.ViewScale
+            ),
+            Color.Blue,
+            2);
+        spriteBatch.DrawRectangle(
+            new RectangleF(
+                camera.GetScreenCoords(new Vector2(camera.FollowBox.X, camera.FollowBox.Y)),
+                new SizeF(camera.FollowBox.Width, camera.FollowBox.Height) * camera.ViewScale
+            ),
+            Color.Blue,
+            2);
     }
 
     public void Read(string fileName = DEFAULT_STAGE_NAME)
