@@ -80,7 +80,7 @@ public class LevelEditor {
             {
                 selectedTexture = (uint)((mousePos.Y - textureSelector.Y) / textureSize);
             }
-            addTiles(mousePos, leftClick);
+            AddTiles(mousePos, leftClick);
         }
 
         //chunk focusing
@@ -133,10 +133,11 @@ public class LevelEditor {
         exitButton.Update();
 
         //update chunk adding buttons
-        updateAddChunkButtons();
+        UpdateAddChunkButtons();
     }
 
     public void Draw() {
+        //backgrounds
         spriteBatch.FillRectangle(bgRect, Color.DarkBlue);
         spriteBatch.FillRectangle(gridEditor, Color.DimGray);
         foreach (Chunk c in chunks)
@@ -151,10 +152,20 @@ public class LevelEditor {
             }
             if(c == focusedChunk) 
             {
-                HighlightChunk(c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location + offsetRounded.ToPoint()}, gridEditor);
+                // HighlightChunk(c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location + offsetRounded.ToPoint()}, gridEditor);
             }
-            drawRectInEditor(c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location + offsetRounded.ToPoint()}, gridEditor, c == focusedChunk ? Color.Green : Color.Red);
+            DrawRectInEditor(c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location + offsetRounded.ToPoint()}, gridEditor, c == focusedChunk ? Color.Green : Color.Red);
         }
+        
+        // Show slightly transparent block at the position where a block would be placed
+        var (mouseHoveredChunk, mouseHoveredX, mouseHoveredY) = GetMousePosInChunk(input.Mouse.Position);
+        if (mouseHoveredChunk != null) {
+            var tileRect = new Rectangle((int)(mouseHoveredX + offsetRounded.X + gridEditor.X + mouseHoveredChunk.Offset.X),
+                                         (int)(mouseHoveredY + offsetRounded.Y + gridEditor.Y + mouseHoveredChunk.Offset.Y),
+                                         textureSize, textureSize);
+            spriteBatch.Draw(mapTextures.GetTexture((uint)selectedTexture), tileRect, Color.White * 0.5f);
+        }
+
         DrawAddChunkButtons();
         spriteBatch.FillRectangle(textureSelector, Color.Blue);
         for (var i = 0; i < NUM_TEXTURES; i++)
@@ -168,33 +179,44 @@ public class LevelEditor {
         exitButton.Draw();
     }
 
-    private void addTiles(Point mousePos, bool leftClick) {
+    private void AddTiles(Point mousePos, bool leftClick) {
         if(gridEditor.Contains(mousePos)) 
+        {
+            var (chk, x, y) = GetMousePosInChunk(mousePos);
+            if (chk != null)
             {
-                foreach (Chunk c in chunks)
+                if(chk.HasTileAt(x, y))
                 {
-                    //chunk bounds adjusted to reflect editor offset
-                    var adjustedChunkBounds = c.ChunkBounds with { Location = c.ChunkBounds.Location + offsetRounded.ToPoint() };
-                    if (adjustedChunkBounds.Contains(mousePos - gridEditor.Location)) 
-                    {
-                        int xPos = (mousePos.X - gridEditor.X - adjustedChunkBounds.X % adjustedChunkBounds.Width) / textureSize * textureSize;
-                        int yPos = (mousePos.Y - gridEditor.Y - adjustedChunkBounds.Y % adjustedChunkBounds.Height) / textureSize * textureSize;
-
-                        if(c.HasTileAt(xPos, yPos))
-                        {
-                            c.RemoveTileAt(xPos, yPos);
-                        }
-                        if (leftClick) c.AddTile(selectedTexture, xPos, yPos, CollisionType.Impassable);
-                    }
+                    chk.RemoveTileAt(x, y);
                 }
-                foreach ((Rectangle, Vector2) btn in addChunkButtons) {
-                    if (btn.Item1.Contains(mousePos))
-                    {
-                        chunks.Add(new Chunk(services, btn.Item2));
-                        timeSinceInteract = 0;
-                    }
+                if (leftClick) chk.AddTile(selectedTexture, x, y, CollisionType.Impassable);
+            }
+            foreach ((Rectangle btn, Vector2 chunkOffset) in addChunkButtons) {
+                if (btn.Contains(mousePos))
+                {
+                    chunks.Add(new Chunk(services, chunkOffset));
+                    timeSinceInteract = 0;
                 }
             }
+        }
+    }
+
+    private (Chunk, int, int) GetMousePosInChunk(Point mousePos) {
+        if (gridEditor.Contains(mousePos))
+        {
+            foreach (Chunk c in chunks) 
+            {
+                var adjustedChunkBounds = c.ChunkBounds with { Location = c.ChunkBounds.Location + offsetRounded.ToPoint() + gridEditor.Location};
+                if (adjustedChunkBounds.Contains(mousePos)) {
+                    int xPos = (((mousePos.X - adjustedChunkBounds.X) % adjustedChunkBounds.Width) / textureSize) * textureSize;
+                    int yPos = (((mousePos.Y - adjustedChunkBounds.Y) % adjustedChunkBounds.Height) / textureSize) * textureSize;
+                    return (c, xPos, yPos);
+                }
+            }
+            return (null, 0, 0);
+        }
+
+        return (null, -1, -1);
     }
 
     private void DrawAddChunkButtons() {
@@ -204,7 +226,7 @@ public class LevelEditor {
         }
     }
 
-    private void updateAddChunkButtons() {
+    private void UpdateAddChunkButtons() {
         addChunkButtons = [];
         foreach (Chunk c in chunks) {
             Rectangle bounds = c.ChunkBounds with { Location = c.ChunkBounds.Location + gridEditor.Location + offsetRounded.ToPoint()};
@@ -250,7 +272,7 @@ public class LevelEditor {
         }
     }
 
-    private void drawRectInEditor(Rectangle bounds, Rectangle editor, Color color) {
+    private void DrawRectInEditor(Rectangle bounds, Rectangle editor, Color color) {
         if (!bounds.Intersects(editor)) return;
         //left
         if (bounds.Left > editor.Left)
