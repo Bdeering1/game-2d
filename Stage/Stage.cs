@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
+using System;
 
 namespace Game2D;
 
@@ -172,18 +173,24 @@ public class Stage
     {
         if (intersection.Width + (m.Velocity.X != 0 ? cornerMargin : 0) >= intersection.Height)
         { // collision on top or bottom
-            if (m.Hitbox.Y > hb.Y)
+            if (m.Hitbox.Y > hb.Y) // collision with bottom of stage element
             {
                 m.Hitbox.Y = hb.Y + hb.Height;
                 m.Collided(CollisionDirection.Up);
+
+                if (m.Velocity.Y < 0)
+                    // only reset the Y velocity when the player is travelling up, 
+                    // so it doesnt get reset while sliding down a wall
+                    m.Velocity = new Vector2(m.Velocity.X, 0.0f);
             }
-            else
+            else // collision with top of stage element
             {
                 m.Hitbox.Y = hb.Y - m.Hitbox.Height;
                 m.Collided(CollisionDirection.Down);
+
+                if (m.Velocity.Y > -5) // only reset the Y velocity when travelling down
+                    m.Velocity = new Vector2(m.Velocity.X, 0.0f);
             }
-            // if (m.Velocity.Y > 0)
-            m.Velocity = new Vector2(m.Velocity.X, 0.0f); // preserve upwards velocity
         }
         else
         { // collision on left or right sides
