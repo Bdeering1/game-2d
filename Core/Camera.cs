@@ -8,7 +8,7 @@ namespace Game2D;
 
 public class Camera
 {
-    private const float FOLLOW_BOX_SIZE = 0.8f;
+    private const float FOLLOW_BOX_SIZE = 0.85f;
     private const float ZOOM_BOX_SIZE = 0.6f;
     private const float INNER_ZOOM_BOX_SIZE = 0.55f;
     private const int SOFT_FOLLOW_WIDTH = 120;
@@ -33,11 +33,11 @@ public class Camera
     public Vector2 TrackedPosition { get; private set; }
 
     public float ViewScale { get; set; } = 1f;
-    private float prevViewScale = 1f;
     private Vector2 viewScaleOffset;
     private int viewScaleIdx = 0;
     private int zoomProgress = 0;
-    private bool zooming = false;
+    private bool zoomingOut = false;
+    private bool zoomingIn = false;
 
     private GraphicsDevice graphics { get; }
 
@@ -64,59 +64,82 @@ public class Camera
     {
         var hardFollow = false;
         var outsideCount = 0;
+        var insideCount = 0;
 
-        if (viewScaleIdx + 1 < ZOOM_LEVELS.Length) {
-            foreach(IMovable obj in TrackedObjects)
+        foreach(IMovable obj in TrackedObjects)
+        {
+            if (!zoomingIn && viewScaleIdx + 1 < ZOOM_LEVELS.Length
+            && (obj.Hitbox.X < ZoomBox.X
+             || obj.Hitbox.Y < ZoomBox.Y
+             || obj.Hitbox.X + obj.Hitbox.Width > ZoomBox.X + ZoomBox.Width
+             || obj.Hitbox.Y + obj.Hitbox.Height > ZoomBox.Y + ZoomBox.Height)
+             && ++outsideCount == 2)
             {
-                if ((obj.Hitbox.X < ZoomBox.X
-                  || obj.Hitbox.Y < ZoomBox.Y
-                  || obj.Hitbox.X + obj.Hitbox.Width > ZoomBox.X + ZoomBox.Width
-                  || obj.Hitbox.Y + obj.Hitbox.Height > ZoomBox.Y + ZoomBox.Height)
-                  && ++outsideCount == 2)
-                {
-                    zooming = true;
-                }
+                zoomingOut = true;
+            }
 
-                if (hardFollow) continue;
-                if (obj.Hitbox.X < FollowBox.X)
-                {
-                    FollowBox.X = obj.Hitbox.X;
-                    hardFollow = true;
-                }
-                else if (obj.Hitbox.X > FollowBox.X + FollowBox.Width)
-                {
-                    FollowBox.X = obj.Hitbox.X - FollowBox.Width;
-                    hardFollow = true;
-                }
+            if (!zoomingOut && viewScaleIdx > 0
+             && obj.Hitbox.X < InnerZoomBox.X + InnerZoomBox.Width
+             && obj.Hitbox.Y < InnerZoomBox.Y + InnerZoomBox.Height
+             && obj.Hitbox.X + obj.Hitbox.Width > InnerZoomBox.X
+             && obj.Hitbox.Y + obj.Hitbox.Height > InnerZoomBox.Y
+             && ++insideCount == 2)
+            {
+                zoomingIn = true;
+            }
 
-                if (obj.Hitbox.Y < FollowBox.Y)
-                {
-                    FollowBox.Y = obj.Hitbox.Y;
-                    hardFollow = true;
-                }
-                else if (obj.Hitbox.Y > FollowBox.Y + FollowBox.Height)
-                {
-                    FollowBox.Y = obj.Hitbox.Y - FollowBox.Height;
-                    hardFollow = true;
-                }
+            if (hardFollow) continue;
+            if (obj.Hitbox.X < FollowBox.X)
+            {
+                FollowBox.X = obj.Hitbox.X;
+                hardFollow = true;
+            }
+            else if (obj.Hitbox.X + obj.Hitbox.Width > FollowBox.X + FollowBox.Width)
+            {
+                FollowBox.X = obj.Hitbox.X - FollowBox.Width;
+                hardFollow = true;
+            }
+
+            if (obj.Hitbox.Y < FollowBox.Y)
+            {
+                FollowBox.Y = obj.Hitbox.Y;
+                hardFollow = true;
+            }
+            else if (obj.Hitbox.Y + obj.Hitbox.Y> FollowBox.Y + FollowBox.Height)
+            {
+                FollowBox.Y = obj.Hitbox.Y - FollowBox.Height;
+                hardFollow = true;
             }
         }
 
-        if (zooming) {
+        if (zoomingOut) {
             if (++zoomProgress < ZOOM_INTERPOLATION_FRAMES) {
                 ViewScale = Utils.Interpolate(ZOOM_LEVELS[viewScaleIdx], ZOOM_LEVELS[viewScaleIdx + 1], zoomProgress, ZOOM_INTERPOLATION_FRAMES);
-                SetViewScaleOffset();
-                ResizeFollowBoxes();
             } else {
-                prevViewScale = ZOOM_LEVELS[viewScaleIdx];
-                InnerZoomBox.Dimensions = new((graphics.Viewport.Width * INNER_ZOOM_BOX_SIZE) / prevViewScale,
-                                              (graphics.Viewport.Height * INNER_ZOOM_BOX_SIZE) / prevViewScale);
+                var innerViewScale = ZOOM_LEVELS[viewScaleIdx];
+                InnerZoomBox.Dimensions = new((graphics.Viewport.Width * INNER_ZOOM_BOX_SIZE) / innerViewScale,
+                                              (graphics.Viewport.Height * INNER_ZOOM_BOX_SIZE) / innerViewScale);
                 ViewScale = ZOOM_LEVELS[++viewScaleIdx];
-                SetViewScaleOffset();
-                ResizeFollowBoxes();
                 zoomProgress = 0;
-                zooming = false;
+                zoomingOut = false;
             }
+            SetViewScaleOffset();
+            ResizeFollowBoxes();
+        } else if (zoomingIn) {
+            if (++zoomProgress < ZOOM_INTERPOLATION_FRAMES) {
+                ViewScale = Utils.Interpolate(ZOOM_LEVELS[viewScaleIdx], ZOOM_LEVELS[viewScaleIdx - 1], zoomProgress, ZOOM_INTERPOLATION_FRAMES);
+            } else {
+                if (viewScaleIdx > 1) {
+                    var innerViewScale = ZOOM_LEVELS[viewScaleIdx - 1];
+                    InnerZoomBox.Dimensions = new((graphics.Viewport.Width * INNER_ZOOM_BOX_SIZE) / innerViewScale,
+                                                  (graphics.Viewport.Height * INNER_ZOOM_BOX_SIZE) / innerViewScale);
+                }
+                ViewScale = ZOOM_LEVELS[--viewScaleIdx];
+                zoomProgress = 0;
+                zoomingIn = false;
+            }
+            SetViewScaleOffset();
+            ResizeFollowBoxes();
         }
 
         if (hardFollow)
@@ -186,7 +209,7 @@ public class Camera
             ),
             Color.Blue,
             2);
-        if (!zooming) {
+        if (!zoomingIn && !zoomingOut && viewScaleIdx > 0) {
             spriteBatch.DrawRectangle(
                 (Rectangle)GetScreenCoords(InnerZoomBox),
                 Color.Purple,
