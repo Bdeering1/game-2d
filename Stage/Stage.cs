@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
-using System;
 
 namespace Game2D;
 
@@ -84,6 +83,13 @@ public class Stage
             new RectangleF(
                 camera.GetScreenCoords(new Vector2(camera.FollowBox.X, camera.FollowBox.Y)),
                 new SizeF(camera.FollowBox.Width, camera.FollowBox.Height) * camera.ViewScale
+            ),
+            Color.Blue,
+            2);
+        spriteBatch.DrawRectangle(
+            new RectangleF(
+                camera.GetScreenCoords(new Vector2(camera.ZoomBox.X, camera.ZoomBox.Y)),
+                new SizeF(camera.ZoomBox.Width, camera.ZoomBox.Height) * camera.ViewScale
             ),
             Color.Blue,
             2);

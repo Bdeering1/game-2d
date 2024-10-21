@@ -3,14 +3,14 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.Linq;
 using MonoGame.Extended;
-using System;
 
 namespace Game2D;
 
 public class Camera
 {
-    private const int SOFT_FOLLOW_WIDTH = 150;
-    private const int SOFT_FOLLOW_HEIGHT = 50;
+    private const int SOFT_FOLLOW_WIDTH = 120;
+    private const int SOFT_FOLLOW_HEIGHT = 60;
+    private const int ZOOM_INTERPOLATION_FRAMES = 150;
     private readonly float[] ZOOM_LEVELS =
         [
             1f,
@@ -22,12 +22,14 @@ public class Camera
     public Hitbox Hitbox { get; set; }
     public Hitbox FollowBox { get; set; }
     public Hitbox SoftFollowBox { get; set; }
+    public Hitbox ZoomBox { get; set; }
     public List<IMovable> TrackedObjects { get; set; }
     public Vector2 TrackedPosition { get; private set; }
 
     public float ViewScale { get; set; } = 1f;
     private Vector2 viewScaleOffset;
     private int viewScaleIdx = 0;
+    private int zoomProgress = 0;
     private bool zooming = false;
 
     private GraphicsDevice graphics { get; }
@@ -38,7 +40,8 @@ public class Camera
 
         FollowBox = new();
         SoftFollowBox = new();
-        ResetFollowBoxSize();
+        ZoomBox = new();
+        ResizeFollowBoxes();
 
         Hitbox = new(
             new(0, 0),
@@ -51,57 +54,71 @@ public class Camera
 
     public void Update(GameTime gameTime)
     {
-        foreach(IMovable obj in TrackedObjects)
-        {
-            if (obj.Hitbox.X < FollowBox.X
-             || obj.Hitbox.Y < FollowBox.Y
-             || obj.Hitbox.X + obj.Hitbox.Width > FollowBox.X + FollowBox.Width
-             || obj.Hitbox.Y + obj.Hitbox.Height > FollowBox.Y + FollowBox.Height)
-            {
-                if (viewScaleIdx + 1 >= ZOOM_LEVELS.Length) break; // minimum zoom case
+        var hardFollow = false;
+        var outsideCount = 0;
 
-                ViewScale = ZOOM_LEVELS[++viewScaleIdx];
-                viewScaleOffset = new((1200 - Hitbox.Width * ViewScale) / 2, (900 - Hitbox.Height * ViewScale) / 2);
-                ResetFollowBoxSize();
-                FollowBox.Center = Hitbox.Center;
-                SoftFollowBox.Center = Hitbox.Center;
-                break;
+        if (viewScaleIdx + 1 < ZOOM_LEVELS.Length) {
+            foreach(IMovable obj in TrackedObjects)
+            {
+                if ((obj.Hitbox.X < ZoomBox.X
+                  || obj.Hitbox.Y < ZoomBox.Y
+                  || obj.Hitbox.X + obj.Hitbox.Width > ZoomBox.X + ZoomBox.Width
+                  || obj.Hitbox.Y + obj.Hitbox.Height > ZoomBox.Y + ZoomBox.Height)
+                  && ++outsideCount == 2)
+                {
+                    zooming = true;
+                }
+
+                if (hardFollow) continue;
+                if (obj.Hitbox.X < FollowBox.X)
+                {
+                    FollowBox.X = obj.Hitbox.X;
+                    hardFollow = true;
+                }
+                else if (obj.Hitbox.X > FollowBox.X + FollowBox.Width)
+                {
+                    FollowBox.X = obj.Hitbox.X - FollowBox.Width;
+                    hardFollow = true;
+                }
+
+                if (obj.Hitbox.Y < FollowBox.Y)
+                {
+                    FollowBox.Y = obj.Hitbox.Y;
+                    hardFollow = true;
+                }
+                else if (obj.Hitbox.Y > FollowBox.Y + FollowBox.Height)
+                {
+                    FollowBox.Y = obj.Hitbox.Y - FollowBox.Height;
+                    hardFollow = true;
+                }
             }
         }
-        
-        Vector2 avgPos = new
-            (TrackedObjects.Average(obj => obj.Hitbox.CenterX),
-             TrackedObjects.Average(obj => obj.Hitbox.CenterY));
-        TrackedPosition = GetScreenCoords(avgPos);
 
-        var hardFollow = false;
-        if (avgPos.X < FollowBox.X)
-        {
-            FollowBox.X = avgPos.X;
-            hardFollow = true;
-        }
-        else if (avgPos.X > FollowBox.X + FollowBox.Width)
-        {
-            FollowBox.X = avgPos.X - FollowBox.Width;
-            hardFollow = true;
+        if (zooming) {
+            if (++zoomProgress < ZOOM_INTERPOLATION_FRAMES) {
+                ViewScale = Utils.Interpolate(ZOOM_LEVELS[viewScaleIdx], ZOOM_LEVELS[viewScaleIdx + 1], zoomProgress, ZOOM_INTERPOLATION_FRAMES);
+                SetViewScaleOffset();
+                ResizeFollowBoxes();
+            } else {
+                ViewScale = ZOOM_LEVELS[++viewScaleIdx];
+                SetViewScaleOffset();
+                ResizeFollowBoxes();
+                zoomProgress = 0;
+                zooming = false;
+            }
         }
 
-        if (avgPos.Y < FollowBox.Y)
-        {
-            FollowBox.Y = avgPos.Y;
-            hardFollow = true;
-        }
-        else if (avgPos.Y > FollowBox.Y + FollowBox.Height)
-        {
-            FollowBox.Y = avgPos.Y - FollowBox.Height;
-            hardFollow = true;
-        }
 
         if (hardFollow)
         {
             SoftFollowBox.Center = FollowBox.Center;
             Hitbox.Center = FollowBox.Center;
         }
+        
+        Vector2 avgPos = new
+            (TrackedObjects.Average(obj => obj.Hitbox.CenterX),
+             TrackedObjects.Average(obj => obj.Hitbox.CenterY));
+        TrackedPosition = GetScreenCoords(avgPos);
 
         var softFollow = false;
         if (avgPos.X < SoftFollowBox.X)
@@ -130,6 +147,8 @@ public class Camera
             FollowBox.Center = SoftFollowBox.Center;
             Hitbox.Center = SoftFollowBox.Center;
         }
+
+        ZoomBox.Center = FollowBox.Center;
     }
 
     public Vector2 GetScreenCoords(Vector2 pos) =>
@@ -149,16 +168,21 @@ public class Camera
         Hitbox.Center = avgPos;
         FollowBox.Center = Hitbox.Center;
         SoftFollowBox.Center = Hitbox.Center;
+        ZoomBox.Center = Hitbox.Center;
     }
 
-    private void ResetFollowBoxSize()
+    private void SetViewScaleOffset() =>
+        viewScaleOffset = new((1200 - Hitbox.Width * ViewScale) / 2, (900 - Hitbox.Height * ViewScale) / 2);
+
+    private void ResizeFollowBoxes()
     {
         var oldCenter = FollowBox.Center;
         FollowBox.Dimensions = new((graphics.Viewport.Width * 0.8f) / ViewScale, (graphics.Viewport.Height * 0.8f) / ViewScale);
+        ZoomBox.Dimensions = new((graphics.Viewport.Width * 0.6f) / ViewScale, (graphics.Viewport.Height * 0.6f) / ViewScale);
         SoftFollowBox.Dimensions = new(SOFT_FOLLOW_WIDTH / ViewScale, SOFT_FOLLOW_HEIGHT / ViewScale);
         FollowBox.Center = oldCenter;
         SoftFollowBox.Center = oldCenter;
-        Console.WriteLine(ViewScale);
+        ZoomBox.Center = oldCenter;
     }
 }
 

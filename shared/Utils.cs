@@ -38,7 +38,7 @@ public class Utils
             (int)(rect.Y * viewport.Height) + viewport.Location.Y,
             (int)(rect.Width * viewport.Width),
             (int)(rect.Height * viewport.Height));
-    
+
     public static Rectangle ToAbsolute(RectangleF viewport, RectangleF rect) =>
         new ((int)(rect.X * viewport.Width + viewport.X),
             (int)(rect.Y * viewport.Height + viewport.Y),
@@ -51,6 +51,9 @@ public class Utils
     public static Vector2 ToAbsolute(RectangleF viewport, Vector2 vec) =>
         new (vec.X * viewport.Width + viewport.X,
                     vec.Y * viewport.Height + viewport.Y);
+
+    public static float Interpolate(float start, float end, float progress, float endVal) =>
+        (start * (endVal - progress) + end * progress) / endVal;
 
     public static string GetDebugRoot() =>
          Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
