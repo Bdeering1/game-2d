@@ -42,6 +42,8 @@ public class Hitbox(Vector2 pos, Vector2 dimensions)
 
     public Hitbox(): this(new Vector2(0.0f, 0.0f), new Vector2(0.0f, 0.0f)) {}
     public Hitbox(float x, float y, float width, float height): this(new Vector2(x, y), new Vector2(width, height)) {}
+    public Hitbox(Hitbox hb): this(hb.XY, hb.Dimensions) {}
+
 
     public Hitbox Intersects(Hitbox other) 
     {
@@ -79,6 +81,4 @@ public class Hitbox(Vector2 pos, Vector2 dimensions)
 
     public static explicit operator RectangleF(Hitbox h) =>
         new RectangleF(h.XY, h.Dimensions.ToPoint());
-
-    public static explicit operator Vector2(Hitbox h) => h.XY;
 }

@@ -35,7 +35,7 @@ public class Player: IMovable
     public Hitbox Hitbox { get; set; } = new();
     public Vector2 Velocity { get; set; } = new();
 
-    public RectangleF Drawbox => new RectangleF((Vector2)Hitbox + animations.Offset, drawSize);
+    public RectangleF Drawbox => new RectangleF(Hitbox.XY + animations.Offset, drawSize);
     private Point drawSize { get; } = new Point(TEXTURE_WIDTH * TEXTURE_SCALING, TEXTURE_HEIGHT * TEXTURE_SCALING);
 
     private Animations animations { get; }
@@ -163,7 +163,7 @@ public class Player: IMovable
 
     public void Draw(GameTime gameTime)
     {
-        // spriteBatch.Draw(hitboxTexture, (Vector2)Hitbox - camera.Hitbox, Color.Green);
+        // spriteBatch.Draw(hitboxTexture, camera.GetScreenCoords(Hitbox.XY), Color.Green);
         spriteBatch.Draw(
             animations.Sheet.img,
             (Rectangle)camera.GetScreenCoords(Drawbox),
