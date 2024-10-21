@@ -115,7 +115,7 @@ public class Camera
         if (zoomingOut)
         {
             if (++zoomProgress < ZOOM_INTERPOLATION_FRAMES) {
-                ViewScale = Utils.Interpolate(ZOOM_LEVELS[viewScaleIdx], ZOOM_LEVELS[viewScaleIdx + 1], zoomProgress, ZOOM_INTERPOLATION_FRAMES);
+                ViewScale = Utils.Interpolate(ZOOM_LEVELS[viewScaleIdx], ZOOM_LEVELS[viewScaleIdx + 1], (float)zoomProgress/ZOOM_INTERPOLATION_FRAMES, Utils.InterpolationType.EASEOUT);
             }
             else
             {
@@ -133,7 +133,7 @@ public class Camera
         {
             if (++zoomProgress < ZOOM_INTERPOLATION_FRAMES)
             {
-                ViewScale = Utils.Interpolate(ZOOM_LEVELS[viewScaleIdx], ZOOM_LEVELS[viewScaleIdx - 1], zoomProgress, ZOOM_INTERPOLATION_FRAMES);
+                ViewScale = Utils.Interpolate(ZOOM_LEVELS[viewScaleIdx], ZOOM_LEVELS[viewScaleIdx - 1], (float)zoomProgress/ZOOM_INTERPOLATION_FRAMES, Utils.InterpolationType.EASEOUT);
             }
             else
             {

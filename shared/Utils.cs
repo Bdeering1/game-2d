@@ -52,8 +52,31 @@ public class Utils
         new (vec.X * viewport.Width + viewport.X,
                     vec.Y * viewport.Height + viewport.Y);
 
-    public static float Interpolate(float start, float end, float progress, float endVal) =>
-        (start * (endVal - progress) + end * progress) / endVal;
+
+    public enum InterpolationType {
+        LINEAR,
+        EASEIN,
+        EASEOUT,
+        EASEINOUT
+    }
+
+    // takes start/end and progress (0-1) and optional interpolation type
+    // rather than the incremental approach as it used to (i.e progress was an int referring to some value 0-endVal)
+    public static float Interpolate(float start, float end, float progress, InterpolationType type = InterpolationType.LINEAR)
+    {
+        switch(type) {
+            case InterpolationType.LINEAR:
+                return start + (end - start) * progress; // linear
+            case InterpolationType.EASEIN:
+                return start + (1f - (float)Math.Sin(((1 + progress) * Math.PI)/2)) * (end - start); // sine ease-in
+            case InterpolationType.EASEOUT:
+                return start + (float)Math.Sin((progress * Math.PI)/2) * (end - start); // sine ease-out
+            case InterpolationType.EASEINOUT:
+                return start + (progress * progress * (3.0f - 2.0f * progress)) * (end - start); // bezier ease-in-out
+            default:
+                return start + (end - start) * progress;
+        }
+    }
 
     public static string GetDebugRoot() =>
          Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName;
