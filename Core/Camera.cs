@@ -11,10 +11,10 @@ public class Camera
     private const float FOLLOW_BOX_SIZE = 0.80f;
     private const float ZOOM_BOX_SIZE = 0.6f;
     private const float INNER_ZOOM_BOX_SIZE = 0.55f;
-    private const int SOFT_FOLLOW_WIDTH = 120;
-    private const int SOFT_FOLLOW_HEIGHT = 60;
-    private const int SOFT_FOLLOW_TOLERANCE = 32;
-    private const int ZOOM_INTERPOLATION_FRAMES = 150;
+    private const int SOFT_FOLLOW_WIDTH = 90;
+    private const int SOFT_FOLLOW_HEIGHT = 50;
+    private const int SOFT_FOLLOW_TOLERANCE = 30;
+    private const int ZOOM_INTERPOLATION_FRAMES = 180;
     private readonly float[] ZOOM_LEVELS =
         [
             1f,
@@ -88,7 +88,7 @@ public class Camera
                 zoomingIn = true;
             }
 
-            if (hardFollow) continue;
+            if (hardFollow || viewScaleIdx == ZOOM_LEVELS.Length) continue;
             if (obj.Hitbox.X < FollowBox.X)
             {
                 FollowBox.X = obj.Hitbox.X;
@@ -139,7 +139,7 @@ public class Camera
             {
                 if (viewScaleIdx > 1)
                 {
-                    var innerViewScale = ZOOM_LEVELS[viewScaleIdx - 1];
+                    var innerViewScale = ZOOM_LEVELS[viewScaleIdx - 2];
                     InnerZoomBox.Dimensions = new((graphics.Viewport.Width * INNER_ZOOM_BOX_SIZE) / innerViewScale,
                                                   (graphics.Viewport.Height * INNER_ZOOM_BOX_SIZE) / innerViewScale);
                 }
