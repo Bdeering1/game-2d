@@ -55,9 +55,9 @@ public class Utils
 
     public enum InterpolationType {
         LINEAR,
-        EASEIN,
-        EASEOUT,
-        EASEINOUT
+        EASE_IN,
+        EASE_OUT,
+        EASE_IN_OUT,
     }
 
     // takes start/end and progress (0-1) and optional interpolation type
@@ -67,11 +67,11 @@ public class Utils
         switch(type) {
             case InterpolationType.LINEAR:
                 return start + (end - start) * progress; // linear
-            case InterpolationType.EASEIN:
+            case InterpolationType.EASE_IN:
                 return start + (1f - (float)Math.Sin(((1 + progress) * Math.PI)/2)) * (end - start); // sine ease-in
-            case InterpolationType.EASEOUT:
+            case InterpolationType.EASE_OUT:
                 return start + (float)Math.Sin((progress * Math.PI)/2) * (end - start); // sine ease-out
-            case InterpolationType.EASEINOUT:
+            case InterpolationType.EASE_IN_OUT:
                 return start + (progress * progress * (3.0f - 2.0f * progress)) * (end - start); // bezier ease-in-out
             default:
                 return start + (end - start) * progress;

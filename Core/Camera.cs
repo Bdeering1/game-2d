@@ -14,7 +14,7 @@ public class Camera
     private const int SOFT_FOLLOW_WIDTH = 90;
     private const int SOFT_FOLLOW_HEIGHT = 50;
     private const int SOFT_FOLLOW_TOLERANCE = 30;
-    private const int ZOOM_INTERPOLATION_FRAMES = 180;
+    private const int ZOOM_INTERPOLATION_FRAMES = 120;
     private readonly float[] ZOOM_LEVELS =
         [
             1f,
@@ -35,7 +35,7 @@ public class Camera
     public float ViewScale { get; set; } = 1f;
     private Vector2 viewScaleOffset;
     private int viewScaleIdx = 0;
-    private int zoomProgress = 0;
+    private float zoomProgress = 0;
     private bool zoomingOut = false;
     private bool zoomingIn = false;
 
@@ -88,7 +88,7 @@ public class Camera
                 zoomingIn = true;
             }
 
-            if (hardFollow || viewScaleIdx == ZOOM_LEVELS.Length) continue;
+            if (hardFollow || viewScaleIdx == ZOOM_LEVELS.Length - 1) continue;
             if (obj.Hitbox.X < FollowBox.X)
             {
                 FollowBox.X = obj.Hitbox.X;
@@ -115,7 +115,10 @@ public class Camera
         if (zoomingOut)
         {
             if (++zoomProgress < ZOOM_INTERPOLATION_FRAMES) {
-                ViewScale = Utils.Interpolate(ZOOM_LEVELS[viewScaleIdx], ZOOM_LEVELS[viewScaleIdx + 1], (float)zoomProgress/ZOOM_INTERPOLATION_FRAMES, Utils.InterpolationType.EASEOUT);
+                ViewScale = Utils.Interpolate(ZOOM_LEVELS[viewScaleIdx],
+                                              ZOOM_LEVELS[viewScaleIdx + 1],
+                                              zoomProgress / ZOOM_INTERPOLATION_FRAMES,
+                                              Utils.InterpolationType.SLIGHT_EASE_OUT);
             }
             else
             {
@@ -133,7 +136,10 @@ public class Camera
         {
             if (++zoomProgress < ZOOM_INTERPOLATION_FRAMES)
             {
-                ViewScale = Utils.Interpolate(ZOOM_LEVELS[viewScaleIdx], ZOOM_LEVELS[viewScaleIdx - 1], (float)zoomProgress/ZOOM_INTERPOLATION_FRAMES, Utils.InterpolationType.EASEOUT);
+                ViewScale = Utils.Interpolate(ZOOM_LEVELS[viewScaleIdx],
+                                              ZOOM_LEVELS[viewScaleIdx - 1],
+                                              zoomProgress / ZOOM_INTERPOLATION_FRAMES,
+                                              Utils.InterpolationType.SLIGHT_EASE_OUT);
             }
             else
             {
