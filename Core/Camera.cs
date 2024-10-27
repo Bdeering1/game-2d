@@ -118,7 +118,7 @@ public class Camera
                 ViewScale = Utils.Interpolate(ZOOM_LEVELS[viewScaleIdx],
                                               ZOOM_LEVELS[viewScaleIdx + 1],
                                               zoomProgress / ZOOM_INTERPOLATION_FRAMES,
-                                              Utils.InterpolationType.SLIGHT_EASE_OUT);
+                                              Utils.InterpolationType.CUSTOM_BEZIER);
             }
             else
             {
@@ -139,7 +139,7 @@ public class Camera
                 ViewScale = Utils.Interpolate(ZOOM_LEVELS[viewScaleIdx],
                                               ZOOM_LEVELS[viewScaleIdx - 1],
                                               zoomProgress / ZOOM_INTERPOLATION_FRAMES,
-                                              Utils.InterpolationType.SLIGHT_EASE_OUT);
+                                              Utils.InterpolationType.CUSTOM_BEZIER);
             }
             else
             {
