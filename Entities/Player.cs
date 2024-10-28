@@ -208,10 +208,7 @@ public class Player: IMovable
                     doGravity(ref forces);
                     doGroundPhysics(direction, ref forces);
                     
-                    //update animation direction
-                    if (direction.X != 0) facingRight = direction.X > 0;
-                    if (xVelSignificant || forces.X != 0) wasFacingRight = facingRight;
-                    animations.reflected = wasFacingRight;
+                    updateAnimationDirection(direction, xVelSignificant, forces);
 
                     if (forces.Y < 0) return PlayerState.JUMPING;
                     if (Math.Abs(direction.X) > 0) return PlayerState.RUNNING;
@@ -227,12 +224,9 @@ public class Player: IMovable
                 {
                     doGravity(ref forces);
                     doGroundPhysics(direction, ref forces);
-
-                    //update animation direction
-                    if (direction.X != 0) facingRight = direction.X > 0;
-                    if (xVelSignificant || forces.X != 0) wasFacingRight = facingRight;
-                    animations.reflected = wasFacingRight;
  
+                    updateAnimationDirection(direction, xVelSignificant, forces);
+
                     if (forces.Y < 0) return PlayerState.JUMPING;
                     if (Math.Abs(direction.X) == 0) return PlayerState.IDLE;
                     
@@ -243,11 +237,8 @@ public class Player: IMovable
                 doGravity(ref forces);
                 doAirPhysics(ref forces);
                 
-                //update animation direction
-                if (direction.X != 0) facingRight = direction.X > 0;
-                if (xVelSignificant || forces.X != 0) wasFacingRight = facingRight;
-                animations.reflected = wasFacingRight;
-                
+                updateAnimationDirection(direction, xVelSignificant, forces);
+
                 //once player starts moving downwards, state switches to falling
                 if (Velocity.Y > 0) {
                     return PlayerState.FALLING;
@@ -257,11 +248,8 @@ public class Player: IMovable
                 doGravity(ref forces);
                 doAirPhysics(ref forces);
                 
-                //update animation direction
-                if (direction.X != 0) facingRight = direction.X > 0;
-                if (xVelSignificant || forces.X != 0) wasFacingRight = facingRight;
-                animations.reflected = wasFacingRight;
-                
+                updateAnimationDirection(direction, xVelSignificant, forces);
+
                 if (onGround)
                 {
                     if (Math.Abs(direction.X) > 0) return PlayerState.RUNNING;
@@ -271,6 +259,12 @@ public class Player: IMovable
             default:
                 return PlayerState.IDLE;
         }
+    }
+
+    private void updateAnimationDirection(Vector2 direction, bool xVelSignificant, (float X, float Y) forces) {
+        if (direction.X != 0) facingRight = direction.X > 0;
+        if (xVelSignificant || forces.X != 0) wasFacingRight = facingRight;
+        animations.reflected = wasFacingRight;
     }
 
     private void doGroundPhysics(Vector2 direction, ref (float X, float Y) forces) {
