@@ -19,13 +19,17 @@ public class Input
     private List<Keys> downKeys = new();
 
     public bool IsKeyPressed(Keys key) =>
-        downKeys.Contains(key) && Keyboard.IsKeyUp(key);
+        downKeys.Contains(key) && Keyboard.IsKeyUp(key) && listenKeys.Contains(key);
 
     public bool IsKeyDown(Keys key) =>
-        Keyboard.IsKeyDown(key);
+        Keyboard.IsKeyDown(key) && listenKeys.Contains(key);
 
-    public void AddListener(Keys key) =>
-        listenKeys.Add(key);
+    public void AddListener(Keys key) {
+        if (!listenKeys.Contains(key)) listenKeys.Add(key);
+    }
+
+    public void RemoveListener(Keys key) =>
+        listenKeys.Remove(key);
 
     public void Update()
     {
