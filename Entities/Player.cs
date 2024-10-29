@@ -125,7 +125,7 @@ public class Player: IMovable
         if (wasOnGround && Velocity.Y > 0) Velocity = Velocity with { Y = 0 }; // prevent unnecessary ground collision
 
         previousState = state;
-        state = UpdateState(state, direction, ref forces); 
+        state = UpdateState(state, direction, ref forces);
         SetAnimation();
 
         var playerAcc = new Vector2(forces.X/Mass, forces.Y/Mass);
@@ -199,6 +199,7 @@ public class Player: IMovable
     private PlayerState UpdateState(PlayerState st, Vector2 direction, ref (float X, float Y) forces)
     {
         bool xVelSignificant = Math.Abs(Velocity.X) > 5f;
+        //since player always has left-right directional influence
         forces.X += direction.X * Force;
         switch (st) 
         {
@@ -210,6 +211,9 @@ public class Player: IMovable
                     
                     updateAnimationDirection(direction, xVelSignificant, forces);
 
+                    // player jump
+                    if(direction.Y < 0 && ticksSinceLanded > jumpDelay) forces.Y += -jumpForce;
+                    
                     if (forces.Y < 0) return PlayerState.JUMPING;
                     if (Math.Abs(direction.X) > 0) return PlayerState.RUNNING;
 
@@ -223,6 +227,9 @@ public class Player: IMovable
                     doGroundPhysics(direction, ref forces);
  
                     updateAnimationDirection(direction, xVelSignificant, forces);
+                    
+                    // player jump
+                    if(direction.Y < 0 && ticksSinceLanded > jumpDelay) forces.Y += -jumpForce;
 
                     if (forces.Y < 0) return PlayerState.JUMPING;
                     if (Math.Abs(direction.X) == 0) return PlayerState.IDLE;
@@ -266,8 +273,6 @@ public class Player: IMovable
     private void doGroundPhysics(Vector2 direction, ref (float X, float Y) forces)
     {
         ticksSinceLanded++;
-
-        if(direction.Y < 0 && ticksSinceLanded > jumpDelay) forces.Y += -jumpForce;
 
         //ground friction
         if ((forces.X == 0 || ((forces.X < 0) != (Velocity.X < 0))) && Math.Abs(Velocity.X) > 5f)
