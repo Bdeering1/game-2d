@@ -115,7 +115,7 @@ public class Player: IMovable
 
         var deltaTime = (float)gameTime.ElapsedGameTime.Ticks / TimeSpan.TicksPerSecond;
 
-        var (fX, fY) = (0.0f, 0.0f);
+        (float X, float Y) forces = (0.0f, 0.0f);
 
         var digitalDirection = input.GetDigitalDirection(bindings);
         var direction = (!digitalDirection.Equals(Vector2.Zero)
@@ -123,38 +123,16 @@ public class Player: IMovable
                          : input.GetAnalogDirection());
 
         if (wasOnGround && Velocity.Y > 0) Velocity = Velocity with { Y = 0 }; // prevent unnecessary ground collision
-        
-        fX += direction.X * Force;
-        fY = Mass * (Velocity.Y < DOWN_GRAVITY_THRESHOLD ? upGravity : downGravity);
 
         previousState = state;
-        state = GetState(fX);
+        state = UpdateState(state, direction, ref forces);
         SetAnimation();
 
-        if (onGround)
-        {
-            ticksSinceLanded++;
-
-            if(direction.Y < 0 && ticksSinceLanded > jumpDelay) fY += -jumpForce;
-
-            //ground friction
-            if ((fX == 0 || ((fX < 0) != (Velocity.X < 0))) && Math.Abs(Velocity.X) > 5f)
-            {
-                fX += Mass * upGravity * groundFriction * (Velocity.X > 0 ? -1: 1);
-            }
-        } else {
-            //air friction
-            if ((fX == 0 || ((fX < 0) != (Velocity.X < 0))) && Math.Abs(Velocity.X) > 5f)
-            {
-                fX += Mass * upGravity * airFriction * (Velocity.X > 0 ? -1: 1);
-            }
-        }
-
-        var playerAcc = new Vector2(fX/Mass, fY/Mass);
+        var playerAcc = new Vector2(forces.X/Mass, forces.Y/Mass);
 
         Velocity += playerAcc * deltaTime;
         Velocity = Velocity with { X = Math.Min(Math.Abs(Velocity.X), velocityCap) * (Velocity.X > 0 ? 1 : -1) };
-        if (fX == 0 && Math.Abs(Velocity.X) <= 5f) Velocity = Velocity with { X = 0f };
+        if (forces.X == 0 && Math.Abs(Velocity.X) <= 5f) Velocity = Velocity with { X = 0f };
         Hitbox.XY += Velocity * deltaTime;
 
         wasOnGround = onGround;
@@ -218,27 +196,99 @@ public class Player: IMovable
         }
     }
 
-    private PlayerState GetState(float fX)
+    private PlayerState UpdateState(PlayerState st, Vector2 direction, ref (float X, float Y) forces)
     {
         bool xVelSignificant = Math.Abs(Velocity.X) > 5f;
-        bool yVelSignificant = Math.Abs(Velocity.Y) > 5f;
-        var yDir = Velocity.Y > 0;
-        
-        if (fX != 0) facingRight = fX > 0;
-        if (xVelSignificant || fX != 0) wasFacingRight = facingRight;
-
-        animations.reflected = wasFacingRight;
-        if (yVelSignificant)
+        //since player always has left-right directional influence
+        forces.X += direction.X * Force;
+        switch (st) 
         {
-            if (yDir)
-                return PlayerState.FALLING;
-            else
-                return PlayerState.JUMPING;
-        } 
-        else if (fX != 0 && xVelSignificant)
-            return PlayerState.RUNNING;
-        else
-            return PlayerState.IDLE;
+            case PlayerState.IDLE:
+                if (onGround) 
+                {
+                    doGravity(ref forces);
+                    doGroundPhysics(direction, ref forces);
+                    
+                    updateAnimationDirection(direction, xVelSignificant, forces);
+
+                    // player jump
+                    if(direction.Y < 0 && ticksSinceLanded > jumpDelay) forces.Y += -jumpForce;
+                    
+                    if (forces.Y < 0) return PlayerState.JUMPING;
+                    if (Math.Abs(direction.X) > 0) return PlayerState.RUNNING;
+
+                    return PlayerState.IDLE;
+                }
+                else return PlayerState.FALLING;
+            case PlayerState.RUNNING:
+                if (onGround)
+                {
+                    doGravity(ref forces);
+                    doGroundPhysics(direction, ref forces);
+ 
+                    updateAnimationDirection(direction, xVelSignificant, forces);
+                    
+                    // player jump
+                    if(direction.Y < 0 && ticksSinceLanded > jumpDelay) forces.Y += -jumpForce;
+
+                    if (forces.Y < 0) return PlayerState.JUMPING;
+                    if (Math.Abs(direction.X) == 0) return PlayerState.IDLE;
+                    
+                    return PlayerState.RUNNING;
+                }
+                else return PlayerState.FALLING;
+            case PlayerState.JUMPING:
+                doGravity(ref forces);
+                doAirPhysics(ref forces);
+                
+                updateAnimationDirection(direction, xVelSignificant, forces);
+
+                //once player starts moving downwards, state switches to falling
+                if (Velocity.Y > 0) return PlayerState.FALLING;
+                else return PlayerState.JUMPING;
+            case PlayerState.FALLING:
+                doGravity(ref forces);
+                doAirPhysics(ref forces);
+                
+                updateAnimationDirection(direction, xVelSignificant, forces);
+
+                if (onGround)
+                {
+                    if (Math.Abs(direction.X) > 0) return PlayerState.RUNNING;
+                    else return PlayerState.IDLE;
+                } 
+                else return PlayerState.FALLING;
+            default:
+                return PlayerState.IDLE;
+        }
+    }
+
+    private void updateAnimationDirection(Vector2 direction, bool xVelSignificant, (float X, float Y) forces)
+    {
+        if (direction.X != 0) facingRight = direction.X > 0;
+        if (xVelSignificant || forces.X != 0) wasFacingRight = facingRight;
+        animations.reflected = wasFacingRight;
+    }
+
+    private void doGroundPhysics(Vector2 direction, ref (float X, float Y) forces)
+    {
+        ticksSinceLanded++;
+
+        //ground friction
+        if ((forces.X == 0 || ((forces.X < 0) != (Velocity.X < 0))) && Math.Abs(Velocity.X) > 5f)
+            forces.X += Mass * upGravity * groundFriction * (Velocity.X > 0 ? -1: 1);
+    }
+
+    private void doAirPhysics(ref (float X, float Y) forces)
+    {
+        //air friction
+        if ((forces.X == 0 || ((forces.X < 0) != (Velocity.X < 0))) && Math.Abs(Velocity.X) > 5f)
+            forces.X += Mass * upGravity * airFriction * (Velocity.X > 0 ? -1: 1);
+    }
+
+    private void doGravity(ref (float X, float Y) forces)
+    {
+        forces.Y = Mass * (Velocity.Y < DOWN_GRAVITY_THRESHOLD ? upGravity : downGravity);
     }
 
     private void SetAnimation()
